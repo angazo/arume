@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.RadioMenuItem?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.layout.BorderPane?>
+
+<BorderPane xmlns="http://javafx.com/javafx"
+            xmlns:fx="http://javafx.com/fxml"
+            fx:controller="com.angazo.arume.ui.controller.MainController">
+    <fx:define>
+        <ToggleGroup fx:id="languageToggleGroup"/>
+    </fx:define>
+    <top>
+        <MenuBar fx:id="menuBar">
+            <Menu fx:id="languageMenu">
+                <items>
+                    <RadioMenuItem fx:id="englishItem" toggleGroup="$languageToggleGroup" onAction="#onEnglishSelected"/>
+                    <RadioMenuItem fx:id="spanishItem" toggleGroup="$languageToggleGroup" onAction="#onSpanishSelected"/>
+                </items>
+            </Menu>
+        </MenuBar>
+    </top>
+</BorderPane>

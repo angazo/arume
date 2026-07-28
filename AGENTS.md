@@ -1,0 +1,153 @@
+# AGENTS.md — Contexto del proyecto para agentes de IA
+
+> Este fichero es la fuente de verdad del contexto de trabajo. Si trabajas como agente en este
+> repositorio, lee esto primero. 
+
+## Objetivo del proyecto
+
+Crear una aplicación que permita a un particular o empresa llevar su facturación y contabilidad.
+
+## Stack tecnológico
+
+| Componente | Tecnología |
+|---|---|
+| Lenguaje | Java 25 |
+| Build | Gradle 9.6 (multimódulo) |
+| Framework | Spring Boot 4.1 |
+| ORM / acceso a datos | MyBatis Spring Boot 4.0 |
+| Base de datos | H2 (modo compatibilidad PostgreSQL) |
+| Migraciones BBDD | Flyway Community |
+| UI | JavaFX 25 + AtlantaFX 2.1 |
+| Testing | JUnit 5 (JUnitPlatform) |
+| Utilidades | Lombok, Logback |
+
+## Estructura del proyecto
+
+```
+src/
+├── arume-app/    → Punto de entrada Spring Boot, configuración, migraciones Flyway
+├── arume-db/     → Capa de datos: mappers MyBatis, entidades, repositorios
+└── arume-ui/     → Interfaz JavaFX (controladores, vistas FXML, recursos)
+
+Paquete base: com.angazo.arume
+```
+
+**Módulos:**
+
+| Módulo | Responsabilidad |
+|---|---|
+| `arume-app` | Arranque de la aplicación (`ArumeApp`), configuración Spring Boot, recursos (`application.yml`, migraciones Flyway en `db/migration/`) |
+| `arume-db` | Acceso a datos: mappers MyBatis, entidades, configuración de base de datos |
+| `arume-ui` | Interfaz de usuario JavaFX: controladores, vistas FXML, tema AtlantaFX |
+
+## Comandos de uso frecuente
+
+```bash
+./gradlew build        # Compilar y ejecutar tests
+./gradlew test         # Solo tests
+./gradlew bootRun      # Ejecutar la aplicación
+./gradlew bootJar      # Generar JAR FAT para distribución
+```
+
+## Estado actual
+
+- **Fase actual:** Fase 0 — scaffolding y setup inicial del proyecto
+- **Último hito:** Internacionalización (i18n) con inglés/español, selector en wizard y menú principal, persistencia en arume.yml
+- **Próximo hito:** Por definir
+
+## Convenciones de código
+
+- **Lombok**: se usa para reducir boilerplate (`@Slf4j`, `@Getter`, `@Setter`, etc.)
+- **Java 25**: se aprovechan características modernas (`var`, text blocks, pattern matching, etc.)
+- **UI JavaFX**: vistas definidas en FXML, controladores Java como `@Controller` de Spring
+- **Arranque híbrido**: `ArumeAppFX.launch()` levanta JavaFX, que a su vez arranca Spring Boot vía `SpringApplication.run()`
+- **Base de datos**: H2 en modo PostgreSQL (`MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1`); en desarrollo se usa `jdbc:h2:mem:arume`
+- **Migraciones**: Flyway Community, scripts SQL versionados en `arume-app/src/main/resources/db/migration/`
+- **Nombrado de objetos de BBDD**: todo en minúsculas y en inglés, palabras separadas por guiones bajos. Cada tabla se prefija con `t<n>_` donde `n` es un identificador numérico incremental (0, 1, 2…):
+  - Tablas: `t0_app_config`, `t1_invoices`, `t2_invoice_lines`
+  - PK: `pk_t<n>` (ej. `pk_t0`, `pk_t1`)
+  - FK: `fk_t<origen>_t<destino>` (ej. `fk_t2_t1`). Si hay varias entre las mismas tablas: `fk_t2_t1_1`, `fk_t2_t1_2`
+  - UK: `uk_t<n>_<descripción>` (ej. `uk_t0_key`). Si hay varias: `uk_t0_key_1`, `uk_t0_key_2`
+  - Índices: `ix_t<n>_<descripción>` (ej. `ix_t1_date`). Si hay varios: `ix_t1_date_1`
+- **Idioma**: código fuente en inglés (nombres de clases, métodos, variables, comentarios y logs) para facilitar la participación de la comunidad. Documentación del proyecto (AGENTS.md, Product-Spec.md, openspec/) en español
+- **Commits**: mensajes de commit en inglés, siguiendo conventional commits (feat:, fix:, docs:, etc.)
+- **Paquete base**: `com.angazo.arume`
+
+## Ficheros clave
+
+| Fichero | Contenido |
+|---|---|
+| `docs/Product-Spec.md` | Especificación completa de producto y decisiones de diseño |
+| `openspec/specs/` | Baseline de specs (spec-driven) |
+| `openspec/changes/` | Changes activos y archivados |
+| `openspec/config.yaml` | Configuración de OpenSpec |
+| `src/arume-app/src/main/resources/application.yml` | Configuración Spring Boot |
+| `src/arume-app/src/main/resources/db/migration/` | Migraciones Flyway |
+| `src/build.gradle` | Configuración raíz de Gradle (subproyectos, Java 25, JUnit) |
+
+## Hoja de ruta (fases)
+
+> Haciendo uso de GitHub y sus issues y milestones, iremos definiendo de forma incremental
+> las funcionalidades del proyecto. Nos ayudaremos de agentes de IA y de OpenSpec para
+> ir definiendo cada "change" e implementándolo.
+
+## Preferencias de trabajo del usuario
+
+- **Comunicación en español.**
+- Todo análisis y decisión relevante se documenta en `docs/Product-Spec.md`
+  , mantenerlo actualizado a medida que se cierren temas.
+  La tabla de changes implementados en `docs/Product-Spec.md` se actualiza
+  con cada change que se archiva (fecha, fase, descripción, capabilities afectadas).
+- El usuario prefiere contexto durable en ficheros del repo (este AGENTS.md) antes que en
+  memoria interna del agente, para que sobreviva a clones/moves del repositorio.
+- **`openspec/` es público a propósito**: el usuario lo publica como
+  registro didáctico de cómo se desarrolla el proyecto asistido por agentes de IA. Al escribir
+  proposals/designs/specs/tasks: audiencia pública — autocontenidos, sin referencias a los
+  ficheros privados (docs/Product-Spec.md) y manteniendo el tono didáctico.
+
+## Flujo de trabajo (OpenSpec) — regla importante
+
+El flujo de trabajo usa **OpenSpec** (`openspec/`): cada cambio se propone, se
+implementa y se archiva. El baseline de specs vive en `openspec/specs/`
+y los cambios archivados en`openspec/changes/archive/`.
+
+Para cada change: crear primero el **`proposal.md`** y el **`design.md`** (y
+`tasks.md` + `specs/`) y **DETENERSE**. **No pasar a ejecutar/implementar las
+tareas hasta que el usuario haya revisado y aprobado el proposal y el design.**
+Tras implementar **archivar solo cuando el usuario lo confirme**.
+
+Tras cada archivado, revisar este **AGENTS.md** y actualizarlo si procede: estado actual
+(fase, último hito, próximo hito), nuevas convenciones surgidas durante el change, o cualquier
+apunte relevante que ayude a futuros agentes a entender el contexto del proyecto sin tener que
+rastrearlo.
+
+Tras cada archivado, extraer los items pendientes (Non-Goals, placeholders, "próximamente",
+"futuro", riesgos pospuestos) y añadirlos a `docs/backlog.md` indicando el change de origen,
+descripción, estado actual y tareas previstas. Esto asegura que nada se pierda al cerrar el change.
+
+### Nomenclatura de changes
+
+Cada change de OpenSpec se nombra con el prefijo del issue de GitHub que lo origina:
+`is<nº-issue>-<slug>`. Ejemplo: `is1-first-run-wizard` para el issue #1.
+El nombre de la carpeta del change es `openspec/changes/is<nº-issue>-<slug>/`.
+
+## Flujo de trabajo con GitHub (issues, ramas, PRs)
+
+Cada change de OpenSpec se rastrea en GitHub con este ciclo:
+
+1. Propuesta OpenSpec aprobada por el usuario.
+2. **Issue en GitHub** para el change, con enlace a su carpeta `openspec/changes/<nombre>/`
+   y **milestone de su fase** (Fase 0, Fase 1…). Los milestones dan la vista de progreso
+   por fase.
+3. **Rama creada desde el issue** (panel *Development* → "Create a branch"; nombre tipo
+   `<nº>-<slug>`), partiendo de `main`.
+4. Implementación en la rama + push (los push los hace el usuario; el agente no tiene
+   SSH hacia `origin` desde su shell).
+5. **PR hacia `main`** con `Closes #<nº>` en la descripción → la CI proyecto
+   (`project-ci.yml`) valida la PR → revisión del diff por el usuario.
+6. **Squash merge** como norma (un change = un commit limpio en `main`).
+   Excepción: PRs cuyos commits intermedios tengan valor propio.
+7. Una vez el usuario mergea el PR y borra la rama de trabajo, nos propondrá el **archivado del change** 
+   , esto se trasformará en un nuevo commit que el usuario hará push sobre la rama `main`.
+   El CI de GitHub se ha configurado para que solo los PR lancen el compilado y testing
+   pero no lo hará un push directo.

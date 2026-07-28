@@ -1,0 +1,32 @@
+plugins {
+    alias(libs.plugins.jasypt)
+    alias(libs.plugins.lombok.freefair)
+    alias(libs.plugins.spring.boot)
+    alias(libs.plugins.javafx)
+}
+
+javafx {
+    version = libs.versions.javafx.get()
+    modules = ["javafx.controls", "javafx.fxml"]
+}
+
+springBoot {
+    mainClass = "com.angazo.arume.app.ArumeApp"
+}
+
+tasks.named("bootRun") {
+    jvmArgs = ["--enable-native-access=ALL-UNNAMED"]
+}
+
+dependencies {
+
+    // Local modules
+    implementation(project(":arume-db"))
+    implementation(project(":arume-ui"))
+
+    // Spring Boot application
+    implementation(libs.spring.boot.starter)
+
+    // H2 Database driver
+    runtimeOnly(libs.h2)
+}

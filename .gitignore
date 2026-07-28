@@ -1,0 +1,40 @@
+### Gradle
+.gradle/
+build/
+!src/gradle/wrapper/gradle-wrapper.jar
+src/**/build/
+
+### IntelliJ IDEA
+.idea/
+*.iml
+*.ipr
+*.iws
+out/
+
+### VS Code
+.vscode/
+*.code-workspace
+
+### OS
+.DS_Store
+Thumbs.db
+*~
+
+### Java
+*.class
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+hs_err_pid*
+replay_pid*
+
+### Logs
+*.log
+
+### AI tools folders and files
+docs/
+.opencode/

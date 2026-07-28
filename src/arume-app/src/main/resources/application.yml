@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: arume-app
+  flyway:
+    enabled: false
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration
+  h2:
+    console:
+      enabled: true

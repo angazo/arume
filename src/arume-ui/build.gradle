@@ -1,0 +1,20 @@
+plugins {
+    alias(libs.plugins.lombok.freefair)
+    alias(libs.plugins.javafx)
+}
+
+
+javafx {
+    version = libs.versions.javafx.get()
+    modules = ["javafx.controls", "javafx.fxml"]
+}
+
+dependencies {
+    implementation(libs.spring.boot)
+    implementation(libs.atlantafx.base)
+    implementation(libs.slf4j.api)
+    implementation(libs.snakeyaml)
+
+    testImplementation(libs.junit.jupiter)
+    testRuntimeOnly(libs.junit.platform.launcher)
+}

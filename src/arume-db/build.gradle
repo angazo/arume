@@ -1,0 +1,25 @@
+plugins {
+    alias(libs.plugins.lombok.freefair)
+    alias(libs.plugins.mybatis.generator)
+}
+
+dependencies {
+    // Spring JDBC
+    implementation(libs.spring.boot.starter.jdbc)
+
+    // MyBatis
+    implementation(libs.mybatis.spring.boot.starter) {
+        exclude group: 'org.springframework.boot', module: 'spring-boot-autoconfigure'
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter'
+        exclude group: 'org.springframework.boot', module: 'spring-boot-starter-jdbc'
+    }
+    implementation(libs.mybatis.jsr310)
+    implementation(libs.mybatis.generator.core)
+    implementation(libs.mybatis.generator.lombok.plugin)
+
+    // H2
+    runtimeOnly(libs.h2)
+
+    // Flyway
+    implementation(libs.flyway.core)
+}

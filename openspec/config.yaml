@@ -1,0 +1,20 @@
+schema: spec-driven
+
+context: |
+  Tech stack: Java 25, Spring Boot 4.1, Gradle 9.6 multimódulo, MyBatis, H2 (modo PostgreSQL), Flyway, JavaFX 25 + AtlantaFX.
+  Estructura: 3 módulos — arume-app (entrada Spring Boot, config, migraciones), arume-db (mappers MyBatis, entidades), arume-ui (JavaFX, FXML, controladores).
+  Paquete base: com.angazo.arume.
+  Testing: JUnit 5 (JUnitPlatform).
+  Convenciones: Lombok, Java moderno (var, text blocks), UI FXML + controladores Spring, arranque híbrido JavaFX→Spring Boot.
+  Idioma: código fuente en inglés, documentación del proyecto en español.
+  Dominio: facturación y contabilidad para particulares/empresas.
+
+# Per-artifact rules (optional)
+# Add custom rules for specific artifacts.
+# Example:
+#   rules:
+#     proposal:
+#       - Keep proposals under 500 words
+#       - Always include a "Non-goals" section
+#     tasks:
+#       - Break tasks into chunks of max 2 hours
