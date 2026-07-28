@@ -52,7 +52,7 @@ Paquete base: com.angazo.arume
 ## Estado actual
 
 - **Fase actual:** Fase 0 — scaffolding y setup inicial del proyecto
-- **Último hito:** Internacionalización (i18n) con inglés/español, selector en wizard y menú principal, persistencia en arume.yml
+- **Último hito:** Selección de tema con 3 variantes de AtlantaFX (Claro/PrimerLight, Oscuro/Dracula, Oscuro intenso/PrimerDark), selector en wizard y toolbar, cambio en vivo, persistencia en arume.yml
 - **Próximo hito:** Por definir
 
 ## Convenciones de código
