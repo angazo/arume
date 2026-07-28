@@ -5,6 +5,7 @@ import java.util.function.Supplier;
 
 import com.angazo.arume.ui.config.ArumeConfig;
 import com.angazo.arume.ui.config.ConfigManager;
+import com.angazo.arume.ui.config.ThemeConfig;
 import com.angazo.arume.ui.controller.FirstRunWizardController;
 import com.angazo.arume.ui.controller.WizardResult;
 import com.angazo.arume.ui.i18n.I18nManager;
@@ -43,6 +44,7 @@ public class ArumeAppFX {
 
         @Override
         public void start(Stage primaryStage) throws Exception {
+            ThemeConfig.LIGHT.apply();
             primaryStage.setTitle("Arume");
             primaryStage.setScene(new Scene(new BorderPane(), 800, 600));
             primaryStage.centerOnScreen();
@@ -52,6 +54,7 @@ public class ArumeAppFX {
             if (configManager.exists()) {
                 log.info("Configuration found, skipping first-run wizard");
                 config = configManager.load();
+                ThemeConfig.fromId(config.theme()).apply();
                 I18nManager.init(config.language());
                 primaryStage.setTitle(I18nManager.getString("app.name"));
                 primaryStage.show();
@@ -68,6 +71,7 @@ public class ArumeAppFX {
                 }
                 config = buildConfigFromWizard(wizardResult);
                 configManager.save(config);
+                ThemeConfig.fromId(config.theme()).apply();
                 primaryStage.setTitle(I18nManager.getString("app.name"));
             }
 
@@ -95,12 +99,13 @@ public class ArumeAppFX {
                 var controller = (FirstRunWizardController) loader.getController();
                 controller.setDefaultStoragePath(configManager.getDefaultDbDir().toString());
 
-                var scene = new Scene(root);
+                var scene = new Scene(root, 494, 734);
                 var wizardStage = new Stage();
                 wizardStage.setTitle(I18nManager.getString("wizard.title"));
                 wizardStage.initOwner(owner);
                 wizardStage.initModality(Modality.APPLICATION_MODAL);
-                wizardStage.setResizable(false);
+                wizardStage.setMinWidth(494);
+                wizardStage.setMinHeight(734);
                 wizardStage.setScene(scene);
 
                 wizardStage.setOnShown(e -> {
@@ -128,7 +133,8 @@ public class ArumeAppFX {
                 url,
                 "org.h2.Driver",
                 result.username(),
-                result.password()
+                result.password(),
+                result.theme()
             );
         }
 

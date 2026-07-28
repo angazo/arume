@@ -7,5 +7,11 @@ public record ArumeConfig(
     String url,
     String driverClassName,
     String username,
-    String password
-) {}
+    String password,
+    String theme
+) {
+
+    public ArumeConfig {
+        if (theme == null) theme = "light";
+    }
+}
