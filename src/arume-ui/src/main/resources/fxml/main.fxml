@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.Menu?>
-<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuButton?>
+<?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.RadioMenuItem?>
 <?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.control.ToolBar?>
 <?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.Region?>
 
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
@@ -13,13 +15,21 @@
         <ToggleGroup fx:id="languageToggleGroup"/>
     </fx:define>
     <top>
-        <MenuBar fx:id="menuBar">
-            <Menu fx:id="languageMenu">
+        <ToolBar fx:id="toolBar">
+            <Region fx:id="toolBarSpacer"/>
+            <MenuButton fx:id="languageButton">
                 <items>
                     <RadioMenuItem fx:id="englishItem" toggleGroup="$languageToggleGroup" onAction="#onEnglishSelected"/>
                     <RadioMenuItem fx:id="spanishItem" toggleGroup="$languageToggleGroup" onAction="#onSpanishSelected"/>
                 </items>
-            </Menu>
-        </MenuBar>
+            </MenuButton>
+            <MenuButton fx:id="themeButton">
+                <items>
+                    <MenuItem fx:id="lightThemeItem" onAction="#onLightThemeSelected"/>
+                    <MenuItem fx:id="darkThemeItem" onAction="#onDarkThemeSelected"/>
+                    <MenuItem fx:id="darkIntenseThemeItem" onAction="#onDarkIntenseThemeSelected"/>
+                </items>
+            </MenuButton>
+        </ToolBar>
     </top>
 </BorderPane>

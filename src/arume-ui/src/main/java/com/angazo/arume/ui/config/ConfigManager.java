@@ -63,7 +63,8 @@ public class ConfigManager {
                 (String) datasource.get("url"),
                 (String) datasource.get("driver-class-name"),
                 (String) datasource.get("username"),
-                (String) datasource.get("password")
+                (String) datasource.get("password"),
+                (String) arume.getOrDefault("theme", "light")
             );
         } catch (IOException e) {
             throw new ConfigException("Failed to load configuration from " + configPath, e);
@@ -77,6 +78,7 @@ public class ConfigManager {
 
         var arume = new LinkedHashMap<String, Object>();
         arume.put("language", config.language());
+        arume.put("theme", config.theme());
         arume.put("db", db);
 
         var datasource = new LinkedHashMap<String, Object>();
@@ -121,10 +123,27 @@ public class ConfigManager {
             config.url(),
             config.driverClassName(),
             config.username(),
-            config.password()
+            config.password(),
+            config.theme()
         );
         save(updated);
         log.info("Updated language to {} in configuration", language);
+    }
+
+    public void updateTheme(String theme) {
+        var config = load();
+        var updated = new ArumeConfig(
+            config.language(),
+            config.dbType(),
+            config.encrypt(),
+            config.url(),
+            config.driverClassName(),
+            config.username(),
+            config.password(),
+            theme
+        );
+        save(updated);
+        log.info("Updated theme to {} in configuration", theme);
     }
 
     public Path getJarDir() {

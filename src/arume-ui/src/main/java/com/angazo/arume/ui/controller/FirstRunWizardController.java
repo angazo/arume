@@ -2,6 +2,7 @@ package com.angazo.arume.ui.controller;
 
 import java.io.File;
 
+import com.angazo.arume.ui.config.ThemeConfig;
 import com.angazo.arume.ui.i18n.I18nManager;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
@@ -22,6 +23,12 @@ public class FirstRunWizardController {
 
     @FXML
     private Label languageLabel;
+
+    @FXML
+    private ComboBox<String> themeCombo;
+
+    @FXML
+    private Label themeLabel;
 
     @FXML
     private ComboBox<String> dbTypeCombo;
@@ -100,6 +107,20 @@ public class FirstRunWizardController {
             I18nManager.setLanguage(code);
         });
 
+        var themes = FXCollections.observableArrayList(
+            I18nManager.getString("wizard.theme.light"),
+            I18nManager.getString("wizard.theme.dark"),
+            I18nManager.getString("wizard.theme.darkIntense")
+        );
+        themeCombo.setItems(themes);
+        themeCombo.getSelectionModel().selectFirst();
+
+        themeCombo.valueProperty().addListener((obs, old, newVal) -> {
+            if (newVal == null) return;
+            var themeId = resolveThemeId(newVal);
+            com.angazo.arume.ui.config.ThemeConfig.fromId(themeId).apply();
+        });
+
         I18nManager.onLanguageChange(this::refreshTexts);
 
         refreshTexts();
@@ -116,6 +137,12 @@ public class FirstRunWizardController {
         var items = languageCombo.getItems();
         items.set(0, I18nManager.getString("wizard.lang.en"));
         items.set(1, I18nManager.getString("wizard.lang.es"));
+
+        themeLabel.setText(I18nManager.getString("wizard.theme"));
+        var themeItems = themeCombo.getItems();
+        themeItems.set(0, I18nManager.getString("wizard.theme.light"));
+        themeItems.set(1, I18nManager.getString("wizard.theme.dark"));
+        themeItems.set(2, I18nManager.getString("wizard.theme.darkIntense"));
 
         dbTypeLabel.setText(I18nManager.getString("wizard.dbType"));
         dbTypeCombo.getItems().set(0, I18nManager.getString("wizard.dbType.h2"));
@@ -161,13 +188,15 @@ public class FirstRunWizardController {
         if (!validateForm()) {
             return;
         }
+        var themeId = resolveThemeId(themeCombo.getValue());
         result = new WizardResult(
             I18nManager.getCurrentLanguage(),
             "h2",
             storagePathField.getText().trim(),
             usernameField.getText().trim(),
             passwordField.getText(),
-            encryptCheckbox.isSelected()
+            encryptCheckbox.isSelected(),
+            themeId
         );
         saved = true;
         closeWindow();
@@ -229,5 +258,15 @@ public class FirstRunWizardController {
 
     public boolean isSaved() {
         return saved;
+    }
+
+    private static String resolveThemeId(String displayLabel) {
+        if (displayLabel == null) return "light";
+        for (var theme : ThemeConfig.values()) {
+            if (I18nManager.getString(theme.getLabelKey()).equals(displayLabel)) {
+                return theme.getId();
+            }
+        }
+        return "light";
     }
 }

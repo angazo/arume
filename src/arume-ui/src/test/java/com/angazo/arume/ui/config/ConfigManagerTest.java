@@ -45,7 +45,8 @@ class ConfigManagerTest {
             "jdbc:h2:file:/tmp/data/arume;MODE=PostgreSQL;DB_CLOSE_DELAY=-1",
             "org.h2.Driver",
             "admin",
-            "mypassword12"
+            "mypassword12",
+            "light"
         );
 
         configManager.save(config);
@@ -70,7 +71,8 @@ class ConfigManagerTest {
             "jdbc:h2:file:/tmp/db;MODE=PostgreSQL",
             "org.h2.Driver",
             "user1",
-            "secret123456"
+            "secret123456",
+            "light"
         );
 
         configManager.applyToSystemProperties(config);
@@ -114,7 +116,8 @@ class ConfigManagerTest {
             "jdbc:h2:file:/tmp/db;MODE=PostgreSQL",
             "org.h2.Driver",
             "admin",
-            "securepass12"
+            "securepass12",
+            "light"
         );
 
         configManager.save(config);
@@ -131,7 +134,8 @@ class ConfigManagerTest {
             "jdbc:h2:file:/tmp/db;MODE=PostgreSQL",
             "org.h2.Driver",
             "admin",
-            "pass12345678"
+            "pass12345678",
+            "light"
         );
 
         configManager.save(config);
@@ -157,7 +161,8 @@ class ConfigManagerTest {
             "jdbc:h2:file:/tmp/db;MODE=PostgreSQL",
             "org.h2.Driver",
             "admin",
-            "pass12345678"
+            "pass12345678",
+            "light"
         );
         configManager.save(config);
 

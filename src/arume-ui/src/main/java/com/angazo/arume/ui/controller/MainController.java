@@ -1,11 +1,15 @@
 package com.angazo.arume.ui.controller;
 
 import com.angazo.arume.ui.config.ConfigManager;
+import com.angazo.arume.ui.config.ThemeConfig;
 import com.angazo.arume.ui.i18n.I18nManager;
 import javafx.fxml.FXML;
-import javafx.scene.control.Menu;
+import javafx.scene.control.MenuButton;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.RadioMenuItem;
-import javafx.scene.control.ToggleGroup;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 
 import org.springframework.stereotype.Component;
 
@@ -13,7 +17,7 @@ import org.springframework.stereotype.Component;
 public class MainController {
 
     @FXML
-    private Menu languageMenu;
+    private MenuButton languageButton;
 
     @FXML
     private RadioMenuItem englishItem;
@@ -22,14 +26,28 @@ public class MainController {
     private RadioMenuItem spanishItem;
 
     @FXML
-    private ToggleGroup languageToggleGroup;
+    private MenuButton themeButton;
+
+    @FXML
+    private MenuItem lightThemeItem;
+
+    @FXML
+    private MenuItem darkThemeItem;
+
+    @FXML
+    private MenuItem darkIntenseThemeItem;
+
+    @FXML
+    private Region toolBarSpacer;
 
     private final ConfigManager configManager = new ConfigManager();
 
     @FXML
     public void initialize() {
+        HBox.setHgrow(toolBarSpacer, Priority.ALWAYS);
         selectCurrentLanguage();
-        refreshMenuTexts();
+        selectCurrentTheme();
+        refreshTexts();
 
         I18nManager.onLanguageChange(this::onLanguageChanged);
     }
@@ -50,20 +68,68 @@ public class MainController {
         }
     }
 
+    @FXML
+    public void onLightThemeSelected() {
+        applyTheme("light");
+    }
+
+    @FXML
+    public void onDarkThemeSelected() {
+        applyTheme("dark");
+    }
+
+    @FXML
+    public void onDarkIntenseThemeSelected() {
+        applyTheme("dark-intense");
+    }
+
+    private void applyTheme(String themeId) {
+        var config = configManager.load();
+        if (themeId.equals(config.theme())) return;
+        ThemeConfig.fromId(themeId).apply();
+        configManager.updateTheme(themeId);
+        selectCurrentTheme();
+    }
+
     private void onLanguageChanged() {
         selectCurrentLanguage();
-        refreshMenuTexts();
+        refreshTexts();
     }
 
     private void selectCurrentLanguage() {
         var current = I18nManager.getCurrentLanguage();
-        var target = "es".equals(current) ? spanishItem : englishItem;
-        target.setSelected(true);
+        if ("es".equals(current)) {
+            spanishItem.setSelected(true);
+            languageButton.setText(I18nManager.getString("main.menu.spanish"));
+        } else {
+            englishItem.setSelected(true);
+            languageButton.setText(I18nManager.getString("main.menu.english"));
+        }
     }
 
-    private void refreshMenuTexts() {
-        languageMenu.setText(I18nManager.getString("main.menu.language"));
+    private static final String ICON_LIGHT = "\u2600\uFE0F";
+    private static final String ICON_DARK = "\uD83C\uDF19\uFE0F";
+    private static final String ICON_DARK_INTENSE = "\uD83C\uDF11\uFE0F";
+
+    private void selectCurrentTheme() {
+        var config = configManager.load();
+        var themeId = config.theme();
+        if ("dark".equals(themeId)) {
+            themeButton.setText(ICON_DARK);
+        } else if ("dark-intense".equals(themeId)) {
+            themeButton.setText(ICON_DARK_INTENSE);
+        } else {
+            themeButton.setText(ICON_LIGHT);
+        }
+    }
+
+    private void refreshTexts() {
+        selectCurrentLanguage();
+        selectCurrentTheme();
         englishItem.setText(I18nManager.getString("main.menu.english"));
         spanishItem.setText(I18nManager.getString("main.menu.spanish"));
+        lightThemeItem.setText(ICON_LIGHT);
+        darkThemeItem.setText(ICON_DARK);
+        darkIntenseThemeItem.setText(ICON_DARK_INTENSE);
     }
 }

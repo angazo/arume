@@ -6,5 +6,6 @@ public record WizardResult(
     String storagePath,
     String username,
     String password,
-    boolean encrypt
+    boolean encrypt,
+    String theme
 ) {}
