@@ -21,6 +21,19 @@
 
 This project is developed for **non-profit and educational purposes**, aiming to explore and implement the latest technologies available in the Java ecosystem for desktop applications.
 
+## Project Status
+
+> **Phase 0** — Scaffolding and initial setup
+
+- [x] First-run wizard: database storage path, credentials, language, and theme selection
+- [x] External configuration via `arume.yml` alongside the JAR
+- [x] H2 database with Flyway migrations in PostgreSQL compatibility mode
+- [x] I18n: English and Spanish with runtime language switching
+- [x] Theme selector: 3 AtlantaFX variants (Light, Dark, Dark Intense)
+- [x] Credential encryption: AES-256/GCM for config URL, H2 `CIPHER=AES` for database files
+- [ ] Business domain: entities, mappers, and services
+- [ ] Invoicing and accounting features
+
 ## Development Tools
 
 | Tool | Description |
