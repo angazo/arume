@@ -1,5 +1,4 @@
 plugins {
-    alias(libs.plugins.jasypt)
     alias(libs.plugins.lombok.freefair)
     alias(libs.plugins.spring.boot)
     alias(libs.plugins.javafx)

@@ -6,8 +6,6 @@ public record ArumeConfig(
     boolean encrypt,
     String url,
     String driverClassName,
-    String username,
-    String password,
     String theme
 ) {
 

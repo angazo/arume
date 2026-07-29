@@ -96,8 +96,6 @@ Paquete base: com.angazo.arume
 - **Comunicación en español.**
 - Todo análisis y decisión relevante se documenta en `docs/Product-Spec.md`
   , mantenerlo actualizado a medida que se cierren temas.
-  La tabla de changes implementados en `docs/Product-Spec.md` se actualiza
-  con cada change que se archiva (fecha, fase, descripción, capabilities afectadas).
 - El usuario prefiere contexto durable en ficheros del repo (este AGENTS.md) antes que en
   memoria interna del agente, para que sobreviva a clones/moves del repositorio.
 - **`openspec/` es público a propósito**: el usuario lo publica como
@@ -124,6 +122,9 @@ rastrearlo.
 Tras cada archivado, extraer los items pendientes (Non-Goals, placeholders, "próximamente",
 "futuro", riesgos pospuestos) y añadirlos a `docs/backlog.md` indicando el change de origen,
 descripción, estado actual y tareas previstas. Esto asegura que nada se pierda al cerrar el change.
+
+Tras cada archivado, se debe actualizar el change en la tabla del documento
+`docs/Product-Spec.md` con (fecha, fase, descripción, capabilities afectadas).
 
 ### Nomenclatura de changes
 

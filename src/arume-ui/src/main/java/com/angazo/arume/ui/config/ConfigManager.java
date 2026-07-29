@@ -21,10 +21,12 @@ public class ConfigManager {
 
     private final Path jarDir;
     private final Path configPath;
+    private final EncryptionService encryptionService;
 
     public ConfigManager() {
         this.jarDir = resolveJarDir();
         this.configPath = jarDir.resolve(CONFIG_FILE);
+        this.encryptionService = new EncryptionService(jarDir);
         log.info("JAR directory: {}", jarDir);
         log.info("Config path: {}", configPath);
     }
@@ -32,6 +34,7 @@ public class ConfigManager {
     public ConfigManager(Path jarDir) {
         this.jarDir = jarDir;
         this.configPath = jarDir.resolve(CONFIG_FILE);
+        this.encryptionService = new EncryptionService(jarDir);
     }
 
     public boolean exists() {
@@ -56,14 +59,17 @@ public class ConfigManager {
             @SuppressWarnings("unchecked")
             var datasource = (Map<String, Object>) spring.get("datasource");
 
+            var url = (String) datasource.get("url");
+            if (EncryptionService.isEncrypted(url)) {
+                url = encryptionService.decrypt(url);
+            }
+
             return new ArumeConfig(
                 (String) arume.getOrDefault("language", "en"),
                 (String) db.get("type"),
                 (boolean) db.getOrDefault("encrypt", false),
-                (String) datasource.get("url"),
+                url,
                 (String) datasource.get("driver-class-name"),
-                (String) datasource.get("username"),
-                (String) datasource.get("password"),
                 (String) arume.getOrDefault("theme", "light")
             );
         } catch (IOException e) {
@@ -81,11 +87,14 @@ public class ConfigManager {
         arume.put("theme", config.theme());
         arume.put("db", db);
 
+        var url = config.url();
+        if (config.encrypt()) {
+            url = encryptionService.encrypt(url);
+        }
+
         var datasource = new LinkedHashMap<String, Object>();
-        datasource.put("url", config.url());
+        datasource.put("url", url);
         datasource.put("driver-class-name", config.driverClassName());
-        datasource.put("username", config.username());
-        datasource.put("password", config.password());
 
         var spring = new LinkedHashMap<String, Object>();
         spring.put("datasource", datasource);
@@ -109,8 +118,6 @@ public class ConfigManager {
     public void applyToSystemProperties(ArumeConfig config) {
         System.setProperty("spring.datasource.url", config.url());
         System.setProperty("spring.datasource.driver-class-name", config.driverClassName());
-        System.setProperty("spring.datasource.username", config.username());
-        System.setProperty("spring.datasource.password", config.password());
         log.info("Applied datasource configuration to system properties");
     }
 
@@ -122,8 +129,6 @@ public class ConfigManager {
             config.encrypt(),
             config.url(),
             config.driverClassName(),
-            config.username(),
-            config.password(),
             config.theme()
         );
         save(updated);
@@ -138,8 +143,6 @@ public class ConfigManager {
             config.encrypt(),
             config.url(),
             config.driverClassName(),
-            config.username(),
-            config.password(),
             theme
         );
         save(updated);
@@ -154,8 +157,17 @@ public class ConfigManager {
         return jarDir.resolve("data");
     }
 
-    public String buildH2Url(Path storagePath) {
-        return DEFAULT_DATASOURCE_URL.formatted(storagePath.toAbsolutePath());
+    public String buildH2Url(Path storagePath, String username, String userPassword, String filePassword, boolean encrypt) {
+        var url = DEFAULT_DATASOURCE_URL.formatted(storagePath.toAbsolutePath());
+        var sb = new StringBuilder(url);
+        sb.append(";CIPHER=AES");
+        sb.append(";USER=").append(username);
+        sb.append(";PASSWORD=").append(filePassword).append(" ").append(userPassword);
+        return sb.toString();
+    }
+
+    public EncryptionService getEncryptionService() {
+        return encryptionService;
     }
 
     public static void ensureStorageDir(ArumeConfig config) {
@@ -242,11 +254,9 @@ public class ConfigManager {
         }
         if (path.startsWith("file:")) {
             path = path.substring(5);
-            // Handle triple slash file:///...
             while (path.startsWith("/")) {
                 path = path.substring(1);
             }
-            // Restore leading slash for absolute paths
             if (!path.startsWith("/") && (path.length() > 1 && path.charAt(1) != ':')) {
                 path = "/" + path;
             }

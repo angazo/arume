@@ -14,7 +14,7 @@
 <VBox xmlns="http://javafx.com/javafx"
       xmlns:fx="http://javafx.com/fxml"
       fx:controller="com.angazo.arume.ui.controller.FirstRunWizardController"
-      spacing="10" prefWidth="494" prefHeight="734">
+      spacing="10" prefWidth="494" prefHeight="800">
 
     <HBox spacing="10">
         <VBox spacing="5">
@@ -51,10 +51,22 @@
     <TextField fx:id="usernameField"/>
 
     <Label fx:id="passwordLabel"/>
-    <PasswordField fx:id="passwordField"/>
+    <HBox spacing="8">
+        <PasswordField fx:id="passwordField" HBox.hgrow="ALWAYS"/>
+        <TextField fx:id="passwordTextField" visible="false" managed="false" HBox.hgrow="ALWAYS"/>
+        <Button fx:id="togglePasswordButton" onAction="#onTogglePassword" prefWidth="35"/>
+    </HBox>
 
-    <Label fx:id="confirmPasswordLabel"/>
-    <PasswordField fx:id="confirmPasswordField"/>
+    <Separator/>
+
+    <Label fx:id="dbEncryptHeaderLabel" style="-fx-font-weight: bold;"/>
+
+    <Label fx:id="dbEncryptPasswordLabel"/>
+    <HBox spacing="8">
+        <PasswordField fx:id="dbEncryptPasswordField" HBox.hgrow="ALWAYS"/>
+        <TextField fx:id="dbEncryptTextField" visible="false" managed="false" HBox.hgrow="ALWAYS"/>
+        <Button fx:id="toggleDbEncryptButton" onAction="#onToggleDbEncryptPassword" prefWidth="35"/>
+    </HBox>
 
     <Separator/>
 
