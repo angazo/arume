@@ -2,7 +2,7 @@
 atlantafx = "2.1.0"
 flyway = "12.10.0"
 h2 = "2.4.240"
-jasypt = "1.3.3"
+
 javafx = "25"
 junit-jupiter = "5.12.2"
 lombok-freefair = "9.5.0"
@@ -32,7 +32,7 @@ snakeyaml = { module = "org.yaml:snakeyaml", version.ref = "snakeyaml" }
 
 [plugins]
 javafx = { id = "org.openjfx.javafxplugin", version = "0.1.0" }
-jasypt = { id = "io.github.ximtech.jasypt-encrypt-plugin", version.ref = "jasypt" }
+
 lombok-freefair = { id = "io.freefair.lombok", version.ref = "lombok-freefair" }
 mybatis-generator = { id = "com.qqviaja.gradle.MybatisGenerator", version.ref = "mybatis-plugin" }
 spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }

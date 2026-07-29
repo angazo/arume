@@ -6,6 +6,8 @@ import com.angazo.arume.ui.config.ThemeConfig;
 import com.angazo.arume.ui.i18n.I18nManager;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
+import javafx.scene.Group;
+import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -13,6 +15,8 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.SVGPath;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 
@@ -67,10 +71,25 @@ public class FirstRunWizardController {
     private PasswordField passwordField;
 
     @FXML
-    private Label confirmPasswordLabel;
+    private TextField passwordTextField;
 
     @FXML
-    private PasswordField confirmPasswordField;
+    private Button togglePasswordButton;
+
+    @FXML
+    private Label dbEncryptHeaderLabel;
+
+    @FXML
+    private Label dbEncryptPasswordLabel;
+
+    @FXML
+    private PasswordField dbEncryptPasswordField;
+
+    @FXML
+    private TextField dbEncryptTextField;
+
+    @FXML
+    private Button toggleDbEncryptButton;
 
     @FXML
     private CheckBox encryptCheckbox;
@@ -121,6 +140,14 @@ public class FirstRunWizardController {
             com.angazo.arume.ui.config.ThemeConfig.fromId(themeId).apply();
         });
 
+        togglePasswordButton.setGraphic(createEyeIcon(true));
+        togglePasswordButton.setText("");
+        toggleDbEncryptButton.setGraphic(createEyeIcon(true));
+        toggleDbEncryptButton.setText("");
+
+        passwordTextField.textProperty().bindBidirectional(passwordField.textProperty());
+        dbEncryptTextField.textProperty().bindBidirectional(dbEncryptPasswordField.textProperty());
+
         I18nManager.onLanguageChange(this::refreshTexts);
 
         refreshTexts();
@@ -155,11 +182,68 @@ public class FirstRunWizardController {
         credentialsLabel.setText(I18nManager.getString("wizard.credentials"));
         usernameLabel.setText(I18nManager.getString("wizard.username"));
         passwordLabel.setText(I18nManager.getString("wizard.password"));
-        confirmPasswordLabel.setText(I18nManager.getString("wizard.confirmPassword"));
+
+        dbEncryptHeaderLabel.setText(I18nManager.getString("wizard.dbEncryptHeader"));
+        dbEncryptPasswordLabel.setText(I18nManager.getString("wizard.dbEncryptPassword"));
 
         encryptCheckbox.setText(I18nManager.getString("wizard.encrypt"));
         cancelButton.setText(I18nManager.getString("wizard.cancel"));
         saveButton.setText(I18nManager.getString("wizard.save"));
+    }
+
+    @FXML
+    public void onTogglePassword() {
+        togglePasswordVisibility(passwordField, passwordTextField);
+    }
+
+    @FXML
+    public void onToggleDbEncryptPassword() {
+        togglePasswordVisibility(dbEncryptPasswordField, dbEncryptTextField);
+    }
+
+    private void togglePasswordVisibility(PasswordField passwordField, TextField textField) {
+        var show = !textField.isVisible();
+        textField.setVisible(show);
+        textField.setManaged(show);
+        passwordField.setVisible(!show);
+        passwordField.setManaged(!show);
+        var button = passwordField == this.passwordField ? togglePasswordButton : toggleDbEncryptButton;
+        button.setGraphic(createEyeIcon(!show));
+    }
+
+    private Node createEyeIcon(boolean open) {
+        var scale = 0.75;
+
+        var outline = new SVGPath();
+        outline.setContent("M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6z");
+        outline.setStroke(Color.web("#7a7a7a"));
+        outline.setFill(null);
+        outline.setStrokeWidth(2.5);
+        outline.setScaleX(scale);
+        outline.setScaleY(scale);
+
+        var pupil = new SVGPath();
+        pupil.setContent("M 9,12 a 3,3 0 1,1 6,0 a 3,3 0 1,1 -6,0");
+        pupil.setStroke(Color.web("#7a7a7a"));
+        pupil.setFill(null);
+        pupil.setStrokeWidth(2.5);
+        pupil.setScaleX(scale);
+        pupil.setScaleY(scale);
+
+        var group = new Group(outline, pupil);
+
+        if (!open) {
+            var slash = new SVGPath();
+            slash.setContent("M 3.5 3.5 L 20.5 20.5");
+            slash.setStroke(Color.web("#7a7a7a"));
+            slash.setFill(null);
+            slash.setStrokeWidth(2.5);
+            slash.setScaleX(scale);
+            slash.setScaleY(scale);
+            group.getChildren().add(slash);
+        }
+
+        return group;
     }
 
     public void setDefaultStoragePath(String path) {
@@ -195,6 +279,7 @@ public class FirstRunWizardController {
             storagePathField.getText().trim(),
             usernameField.getText().trim(),
             passwordField.getText(),
+            dbEncryptPasswordField.getText(),
             encryptCheckbox.isSelected(),
             themeId
         );
@@ -230,9 +315,13 @@ public class FirstRunWizardController {
             return false;
         }
 
-        var confirm = confirmPasswordField.getText();
-        if (!password.equals(confirm)) {
-            showAlert(Alert.AlertType.ERROR, "validation.title", "validation.passwordMismatch");
+        var dbEncryptPassword = dbEncryptPasswordField.getText();
+        if (dbEncryptPassword == null || dbEncryptPassword.isEmpty()) {
+            showAlert(Alert.AlertType.ERROR, "validation.title", "validation.emptyDbEncryptPassword");
+            return false;
+        }
+        if (dbEncryptPassword.length() < 12) {
+            showAlert(Alert.AlertType.ERROR, "validation.title", "validation.dbEncryptPasswordLength");
             return false;
         }
 
