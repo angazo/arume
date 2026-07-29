@@ -56,6 +56,6 @@
 
 - [x] 8.1 Run `./gradlew test` and verify all tests pass
 - [x] 8.2 Run `./gradlew build` and verify successful compilation
-- [ ] 8.3 Manual smoke test: delete `arume.yml`, launch app, complete wizard with encrypt=true, verify `arume.yml` has `ENC(...)` URL, restart app, verify it loads without wizard
+- [x] 8.3 Manual smoke test: delete `arume.yml`, launch app, complete wizard with encrypt=true, verify `arume.yml` has `ENC(...)` URL, restart app, verify it loads without wizard
 
 (End of file - total 59 lines)

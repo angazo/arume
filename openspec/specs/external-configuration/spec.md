@@ -20,13 +20,17 @@ The system SHALL store configuration in a file named `arume.yml` located in the 
 ### Requirement: Config file format
 The configuration file SHALL use YAML format compatible with Spring Boot property conventions.
 
-#### Scenario: Config file contains database and language settings
+#### Scenario: Config file contains database and settings
 - **WHEN** `arume.yml` is written after wizard completion
-- **THEN** it SHALL contain `arume.language` with the language code, `arume.db.type` with the database type identifier, and `spring.datasource.*` properties with url, driver-class-name, username, and password
+- **THEN** it SHALL contain `arume.language` with the language code, `arume.db.type` with the database type identifier, `arume.db.encrypt` with the encryption flag, and `spring.datasource.*` properties with url and driver-class-name (without separate username and password fields)
 
-#### Scenario: Config file is human-readable YAML
+#### Scenario: Config file is human-readable YAML for non-sensitive fields
 - **WHEN** a user or administrator opens `arume.yml`
-- **THEN** the file SHALL be valid YAML with readable key-value pairs
+- **THEN** the file SHALL be valid YAML with readable key-value pairs for `arume.*` fields (language, theme, db type, db encrypt) and `spring.datasource.driver-class-name`, while `spring.datasource.url` MAY be encrypted (shown as `ENC(<base64>)`) if `arume.db.encrypt` is true
+
+#### Scenario: Config save includes theme
+- **WHEN** `ConfigManager.save()` is called with an `ArumeConfig` that has `theme` set to `"dark-intense"`
+- **THEN** the resulting YAML SHALL contain `arume.theme: dark-intense`
 
 ### Requirement: Language field in configuration
 The `arume.yml` configuration file SHALL include a language preference field under the `arume` key.
@@ -45,18 +49,18 @@ The `arume.yml` configuration file SHALL include a language preference field und
 
 #### Scenario: Language can be updated independently
 - **WHEN** the user changes language from the main application window
-- **THEN** the system SHALL update `arume.language` in `arume.yml` without modifying other configuration values
+- **THEN** the system SHALL update `arume.language` in `arume.yml` without modifying other configuration values, preserving the encryption state of `spring.datasource.url`
 
 ### Requirement: Config persistence
 The system SHALL persist database configuration after the wizard completes successfully.
 
 #### Scenario: Save config from wizard
 - **WHEN** the user completes the wizard with valid input and clicks save
-- **THEN** the system SHALL write `arume.yml` with the selected language, database type, storage path, username, and password
+- **THEN** the system SHALL write `arume.yml` with the selected language, database type, JDBC URL (with embedded credentials, optionally encrypted), driver class name, and theme
 
 #### Scenario: Saved config can be read on next startup
 - **WHEN** the application restarts after configuration has been saved
-- **THEN** the system SHALL read `arume.yml` and use the stored values to configure the database connection
+- **THEN** the system SHALL read `arume.yml`, decrypt the URL if encrypted, and use the stored values to configure the database connection
 
 ### Requirement: Config overwrite protection
 The system SHALL NOT overwrite an existing `arume.yml` without explicit user action.
@@ -83,10 +87,3 @@ The `arume.yml` configuration file SHALL include a theme preference field under 
 #### Scenario: Theme can be updated independently
 - **WHEN** the user changes theme from the main application window
 - **THEN** the system SHALL update `arume.theme` in `arume.yml` without modifying other configuration values
-
-### Requirement: Plain text storage in initial iteration
-In this iteration, all configuration values SHALL be stored in plain text within `arume.yml`.
-
-#### Scenario: Credentials are stored in plain text
-- **WHEN** `arume.yml` is written after wizard completion
-- **THEN** username and password SHALL be stored as plain text strings in the YAML file

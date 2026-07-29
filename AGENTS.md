@@ -52,7 +52,7 @@ Paquete base: com.angazo.arume
 ## Estado actual
 
 - **Fase actual:** Fase 0 — scaffolding y setup inicial del proyecto
-- **Último hito:** Selección de tema con 3 variantes de AtlantaFX (Claro/PrimerLight, Oscuro/Dracula, Oscuro intenso/PrimerDark), selector en wizard y toolbar, cambio en vivo, persistencia en arume.yml
+- **Último hito:** Cifrado de credenciales y base de datos: AES-256/GCM para URL en arume.yml (clave derivada de FileStore), H2 CIPHER=AES con contraseña maestra independiente, eliminación de username/password del fichero de configuración, iconos SVG para visibilidad de contraseñas, diálogo de recuperación por cambio de partición
 - **Próximo hito:** Por definir
 
 ## Convenciones de código
