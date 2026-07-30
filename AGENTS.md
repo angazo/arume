@@ -120,8 +120,9 @@ apunte relevante que ayude a futuros agentes a entender el contexto del proyecto
 rastrearlo.
 
 Tras cada archivado, extraer los items pendientes (Non-Goals, placeholders, "próximamente",
-"futuro", riesgos pospuestos) y añadirlos a `docs/backlog.md` indicando el change de origen,
-descripción, estado actual y tareas previstas. Esto asegura que nada se pierda al cerrar el change.
+"futuro", riesgos pospuestos) y crear un **issue de GitHub** en el milestone **Backlog**
+para cada uno, con descripción, origen del change y tareas previstas en el body.
+Esto asegura que nada se pierda al cerrar el change y mantiene el backlog como fuente única en GitHub Issues.
 
 Tras cada archivado, se debe actualizar el change en la tabla del documento
 `docs/Product-Spec.md` con (fecha, fase, descripción, capabilities afectadas).
