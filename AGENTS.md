@@ -52,7 +52,7 @@ Paquete base: com.angazo.arume
 ## Estado actual
 
 - **Fase actual:** Fase 0 — scaffolding y setup inicial del proyecto
-- **Último hito:** Cifrado de credenciales y base de datos: AES-256/GCM para URL en arume.yml (clave derivada de FileStore), H2 CIPHER=AES con contraseña maestra independiente, eliminación de username/password del fichero de configuración, iconos SVG para visibilidad de contraseñas, diálogo de recuperación por cambio de partición
+- **Último hito:** Diseño IDE de la ventana principal: barra de título personalizada (undecorated), sidebars izquierda/derecha con iconos Ikonli, barra de estado con indicador H2, diálogo About, paleta de acentos verde en los 2 temas (Claro/Oscuro), logo de la app en todas las ventanas modales. Eliminado tema Oscuro intenso.
 - **Próximo hito:** Por definir
 
 ## Convenciones de código
@@ -63,6 +63,10 @@ Paquete base: com.angazo.arume
 - **Arranque híbrido**: `ArumeAppFX.launch()` levanta JavaFX, que a su vez arranca Spring Boot vía `SpringApplication.run()`
 - **Base de datos**: H2 en modo PostgreSQL (`MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1`); en desarrollo se usa `jdbc:h2:mem:arume`
 - **Migraciones**: Flyway Community, scripts SQL versionados en `arume-app/src/main/resources/db/migration/`
+- **Ventanas modales**: todas usan `StageStyle.UNDECORATED` con barra de título custom (`.title-bar`, 40px) y botón de cierre. Consistencia visual con la ventana principal.
+- **Iconos**: Ikonli (`ikonli-javafx:12.3.1`) con packs FontAwesome5 y MaterialDesign2. Usar `FontIcon` para todos los iconos de la UI.
+- **CSS**: `arume.css` en `src/arume-ui/src/main/resources/css/` extiende AtlantaFX con variables de acento verde. Cargar vía `scene.getStylesheets().add()`.
+- **Temas**: solo Claro (PrimerLight) y Oscuro (Dracula). Paleta de acentos verde (`-color-accent-*`) overrida en `.root` de `arume.css`.
 - **Nombrado de objetos de BBDD**: todo en minúsculas y en inglés, palabras separadas por guiones bajos. Cada tabla se prefija con `t<n>_` donde `n` es un identificador numérico incremental (0, 1, 2…):
   - Tablas: `t0_app_config`, `t1_invoices`, `t2_invoice_lines`
   - PK: `pk_t<n>` (ej. `pk_t0`, `pk_t1`)

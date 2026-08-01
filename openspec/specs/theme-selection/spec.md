@@ -2,7 +2,7 @@
 
 ## Purpose
 
-Allow the user to choose and persist the visual theme of the application among 3 variants: Claro (PrimerLight), Oscuro (Dracula), and Oscuro intenso (PrimerDark).
+Allow the user to choose and persist the visual theme of the application among 2 variants: Claro (PrimerLight) and Oscuro (Dracula).
 
 ## Requirements
 
@@ -14,8 +14,8 @@ The selected theme SHALL be stored in `arume.yml` under `arume.theme` and loaded
 - **THEN** the resulting `arume.yml` SHALL contain `arume.theme: dark`
 
 #### Scenario: Theme is loaded from config on startup
-- **WHEN** the application starts and `arume.yml` contains `arume.theme: dark-intense`
-- **THEN** the system SHALL apply the PrimerDark theme
+- **WHEN** the application starts and `arume.yml` contains `arume.theme: dark`
+- **THEN** the system SHALL apply the Dracula theme
 
 #### Scenario: Config without theme field defaults to light
 - **WHEN** `arume.yml` is loaded without an `arume.theme` field
@@ -26,34 +26,46 @@ The first-run wizard SHALL include a theme selector combo box next to the langua
 
 #### Scenario: Theme combo is displayed in wizard
 - **WHEN** the wizard is displayed
-- **THEN** a combo box SHALL appear in the same HBox row as the language combo, showing "Claro", "Oscuro", and "Oscuro intenso"
+- **THEN** a combo box SHALL appear in the same HBox row as the language combo, showing "Claro" and "Oscuro"
 
 #### Scenario: Theme combo defaults to Claro
 - **WHEN** the wizard is first displayed
 - **THEN** the theme combo SHALL have "Claro" selected by default and the PrimerLight theme SHALL be active
 
 #### Scenario: Changing theme applies immediately in wizard
-- **WHEN** the user selects "Oscuro intenso" from the theme combo while the wizard is displayed
-- **THEN** the wizard window SHALL immediately switch to PrimerDark theme without reloading
+- **WHEN** the user selects "Oscuro" from the theme combo while the wizard is displayed
+- **THEN** the wizard window SHALL immediately switch to Dracula theme without reloading
 
 #### Scenario: Theme choice is included in wizard result
 - **WHEN** the user completes the wizard with "Oscuro" selected
 - **THEN** the `WizardResult` DTO SHALL include `theme` field with value `"dark"`
 
-### Requirement: Theme can be changed from main menu
-The main application window SHALL include a Theme menu with radio items for each theme variant.
+### Requirement: Theme can be changed from title bar
+The main application window SHALL include a theme selector button in the custom title bar that toggles between light and dark themes.
 
-#### Scenario: Theme menu items exist
+#### Scenario: Theme button exists in title bar
 - **WHEN** the main application window is displayed
-- **THEN** a "Theme" menu SHALL appear in the menu bar to the right of the "Language" menu, containing three RadioMenuItems: "Claro", "Oscuro", and "Oscuro intenso"
+- **THEN** a theme button with an icon representing the current theme SHALL appear in the custom title bar, positioned between the language button and the window control buttons
 
-#### Scenario: Current theme is selected in menu
-- **WHEN** the main window is displayed and the active theme is "Oscuro intenso"
-- **THEN** the "Oscuro intenso" RadioMenuItem SHALL be selected
+#### Scenario: Theme button shows sun icon for light theme
+- **WHEN** the main window is displayed and the active theme is "light"
+- **THEN** the theme button SHALL display a sun icon (FontIcon)
 
-#### Scenario: Changing theme from menu applies immediately
-- **WHEN** the user selects "Claro" from the Theme menu while "Oscuro intenso" is active
-- **THEN** the application SHALL switch to PrimerLight theme immediately and persist the change to `arume.yml`
+#### Scenario: Theme button shows moon icon for dark theme
+- **WHEN** the main window is displayed and the active theme is "dark"
+- **THEN** the theme button SHALL display a moon icon (FontIcon)
+
+#### Scenario: Theme button toggles between light and dark
+- **WHEN** the user clicks the theme button
+- **THEN** the active theme SHALL toggle between light and dark
+
+#### Scenario: Changing theme from button applies immediately
+- **WHEN** the user clicks the theme button and the theme changes
+- **THEN** the application SHALL apply the new AtlantaFX theme immediately via `Application.setUserAgentStylesheet()`
+
+#### Scenario: Changing theme from button persists to config
+- **WHEN** the user clicks the theme button and the theme changes
+- **THEN** the `arume.yml` configuration file SHALL be updated with the new `arume.theme` value
 
 ### Requirement: Theme mapping
 The system SHALL maintain a mapping between semantic theme identifiers and AtlantaFX theme classes.
@@ -66,6 +78,3 @@ The system SHALL maintain a mapping between semantic theme identifiers and Atlan
 - **WHEN** the theme identifier is `"dark"`
 - **THEN** the system SHALL apply `Dracula().getUserAgentStylesheet()`
 
-#### Scenario: Dark-intense maps to PrimerDark
-- **WHEN** the theme identifier is `"dark-intense"`
-- **THEN** the system SHALL apply `PrimerDark().getUserAgentStylesheet()`
