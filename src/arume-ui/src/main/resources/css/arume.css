@@ -1,0 +1,125 @@
+.root {
+    -color-accent-0: #e8f5e9;
+    -color-accent-1: #c8e6c9;
+    -color-accent-2: #a5d6a7;
+    -color-accent-3: #81c784;
+    -color-accent-4: #66bb6a;
+    -color-accent-5: #4caf50;
+    -color-accent-6: #43a047;
+    -color-accent-7: #388e3c;
+    -color-accent-8: #2e7d32;
+    -color-accent-9: #1b5e20;
+    -color-accent-fg: #ffffff;
+    -color-accent-emphasis: #4caf50;
+    -color-accent-muted: rgba(76, 175, 80, 0.4);
+    -color-accent-subtle: rgba(76, 175, 80, 0.15);
+    -color-border-default: #66bb6a;
+    -color-border-muted: #388e3c;
+    -color-border-subtle: rgba(56, 142, 60, 0.2);
+}
+
+.title-bar {
+    -fx-background-color: #3d3f4a;
+    -fx-padding: 0 8 0 8;
+    -fx-min-height: 50;
+    -fx-alignment: center-left;
+}
+
+.title-bar .label {
+    -fx-text-fill: #cccccc;
+}
+
+.title-bar .menu-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #cccccc;
+}
+
+.title-bar .menu-button .label {
+    -fx-text-fill: #cccccc;
+}
+
+.title-bar .menu-button:hover,
+.title-bar .menu-button:showing {
+    -fx-background-color: #3e3e42;
+    -fx-border-color: #4caf50;
+    -fx-border-width: 1;
+    -fx-border-radius: 3;
+}
+
+.title-bar .menu-button > .arrow-button > .arrow {
+    -fx-background-color: #cccccc;
+}
+
+.title-bar .button {
+    -fx-background-color: transparent;
+    -fx-padding: 4 10;
+    -fx-min-height: 28;
+    -fx-text-fill: #cccccc;
+}
+
+.title-bar .button:hover {
+    -fx-background-color: #3e3e42;
+}
+
+.title-bar .ikonli-font-icon {
+    -fx-icon-color: #cccccc;
+}
+
+.title-bar .window-close:hover {
+    -fx-background-color: #e81123;
+    -fx-text-fill: white;
+}
+
+.title-bar .window-close:hover .ikonli-font-icon {
+    -fx-icon-color: white;
+}
+
+.sidebar {
+    -fx-background-color: -color-bg-subtle;
+    -fx-min-width: 104;
+    -fx-padding: 4 4;
+    -fx-alignment: top-center;
+}
+
+.sidebar .toggle-button,
+.sidebar .button {
+    -fx-background-color: transparent;
+    -fx-alignment: center;
+    -fx-content-display: top;
+    -fx-padding: 6 2 4 2;
+    -fx-min-width: 96;
+    -fx-min-height: 56;
+    -fx-max-width: infinity;
+}
+
+.sidebar .toggle-button:hover,
+.sidebar .button:hover {
+    -fx-background-color: -color-neutral-muted;
+}
+
+.sidebar .toggle-button:selected {
+    -fx-background-color: -color-accent-subtle;
+    -fx-text-fill: -color-accent-emphasis;
+}
+
+.sidebar .toggle-button:selected .ikonli-font-icon {
+    -fx-icon-color: -color-accent-emphasis;
+}
+
+.status-bar {
+    -fx-background-color: -color-bg-subtle;
+    -fx-border-color: -color-border-default;
+    -fx-border-width: 1 0 0 0;
+    -fx-min-height: 24;
+    -fx-padding: 0 8;
+    -fx-alignment: center-right;
+}
+
+.modal-root {
+    -fx-border-color: -color-accent-emphasis;
+    -fx-border-width: 1;
+}
+
+.modal-root .title-bar {
+    -fx-min-height: 40;
+}

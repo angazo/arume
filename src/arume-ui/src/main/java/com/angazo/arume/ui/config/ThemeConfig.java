@@ -1,15 +1,13 @@
 package com.angazo.arume.ui.config;
 
 import atlantafx.base.theme.Dracula;
-import atlantafx.base.theme.PrimerDark;
 import atlantafx.base.theme.PrimerLight;
 import javafx.application.Application;
 
 public enum ThemeConfig {
 
     LIGHT("light", "wizard.theme.light", () -> new PrimerLight().getUserAgentStylesheet()),
-    DARK("dark", "wizard.theme.dark", () -> new Dracula().getUserAgentStylesheet()),
-    DARK_INTENSE("dark-intense", "wizard.theme.darkIntense", () -> new PrimerDark().getUserAgentStylesheet());
+    DARK("dark", "wizard.theme.dark", () -> new Dracula().getUserAgentStylesheet());
 
     private final String id;
     private final String labelKey;
