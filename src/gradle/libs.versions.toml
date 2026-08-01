@@ -1,5 +1,6 @@
 [versions]
 atlantafx = "2.1.0"
+ikonli = "12.3.1"
 flyway = "12.10.0"
 h2 = "2.4.240"
 
@@ -16,6 +17,9 @@ spring-boot = "4.1.0"
 
 [libraries]
 atlantafx-base = { module = "io.github.mkpaz:atlantafx-base", version.ref = "atlantafx" }
+ikonli-javafx = { module = "org.kordamp.ikonli:ikonli-javafx", version.ref = "ikonli" }
+ikonli-fontawesome5 = { module = "org.kordamp.ikonli:ikonli-fontawesome5-pack", version.ref = "ikonli" }
+ikonli-materialdesign2 = { module = "org.kordamp.ikonli:ikonli-materialdesign2-pack", version.ref = "ikonli" }
 flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }
 h2 = { module = "com.h2database:h2", version.ref = "h2" }
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit-jupiter" }

@@ -1,35 +1,88 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
 <?import javafx.scene.control.MenuButton?>
 <?import javafx.scene.control.MenuItem?>
-<?import javafx.scene.control.RadioMenuItem?>
+<?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.control.ToggleGroup?>
-<?import javafx.scene.control.ToolBar?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
 
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="com.angazo.arume.ui.controller.MainController">
+
     <fx:define>
-        <ToggleGroup fx:id="languageToggleGroup"/>
+        <ToggleGroup fx:id="navGroup"/>
     </fx:define>
+
     <top>
-        <ToolBar fx:id="toolBar">
-            <Region fx:id="toolBarSpacer"/>
-            <MenuButton fx:id="languageButton">
+        <HBox fx:id="titleBar" styleClass="title-bar" alignment="CENTER_LEFT" spacing="4">
+            <ImageView fx:id="logoView" fitWidth="32" fitHeight="32" preserveRatio="true">
+                <HBox.margin>
+                    <Insets right="20"/>
+                </HBox.margin>
+            </ImageView>
+            <MenuButton fx:id="helpMenu">
                 <items>
-                    <RadioMenuItem fx:id="englishItem" toggleGroup="$languageToggleGroup" onAction="#onEnglishSelected"/>
-                    <RadioMenuItem fx:id="spanishItem" toggleGroup="$languageToggleGroup" onAction="#onSpanishSelected"/>
+                    <MenuItem fx:id="aboutMenuItem" onAction="#onAbout"/>
                 </items>
             </MenuButton>
-            <MenuButton fx:id="themeButton">
-                <items>
-                    <MenuItem fx:id="lightThemeItem" onAction="#onLightThemeSelected"/>
-                    <MenuItem fx:id="darkThemeItem" onAction="#onDarkThemeSelected"/>
-                    <MenuItem fx:id="darkIntenseThemeItem" onAction="#onDarkIntenseThemeSelected"/>
-                </items>
-            </MenuButton>
-        </ToolBar>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button fx:id="languageBtn" onAction="#onLanguageToggle"/>
+            <Button fx:id="themeBtn" onAction="#onThemeToggle"/>
+            <Button fx:id="minimizeBtn"/>
+            <Button fx:id="maximizeBtn"/>
+            <Button fx:id="closeBtn" styleClass="window-close"/>
+        </HBox>
     </top>
+
+    <left>
+        <VBox fx:id="leftSidebar" styleClass="sidebar" spacing="4">
+            <ToggleButton fx:id="dashboardBtn" toggleGroup="$navGroup"/>
+            <ToggleButton fx:id="invoicesBtn" toggleGroup="$navGroup"/>
+            <ToggleButton fx:id="accountingBtn" toggleGroup="$navGroup"/>
+            <Region VBox.vgrow="ALWAYS"/>
+            <Button fx:id="settingsBtn"/>
+        </VBox>
+    </left>
+
+    <center>
+        <StackPane fx:id="contentArea">
+            <VBox fx:id="dashboardPane" alignment="CENTER">
+                <Label text="Dashboard"/>
+            </VBox>
+            <VBox fx:id="invoicesPane" alignment="CENTER" visible="false" managed="false">
+                <Label text="Invoices"/>
+            </VBox>
+            <VBox fx:id="accountingPane" alignment="CENTER" visible="false" managed="false">
+                <Label text="Accounting"/>
+            </VBox>
+            <VBox fx:id="settingsPane" alignment="CENTER" visible="false" managed="false">
+                <Label text="Settings"/>
+            </VBox>
+        </StackPane>
+    </center>
+
+    <right>
+        <VBox fx:id="rightSidebar" styleClass="sidebar" spacing="4">
+            <Button fx:id="helpBtn" onAction="#showAboutFromHelp"/>
+            <Region VBox.vgrow="ALWAYS"/>
+        </VBox>
+    </right>
+
+    <bottom>
+        <HBox fx:id="statusBar" styleClass="status-bar" alignment="CENTER_RIGHT" spacing="4">
+            <Region HBox.hgrow="ALWAYS"/>
+            <Region fx:id="dbDot" style="-fx-min-width: 8; -fx-min-height: 8; -fx-max-width: 8; -fx-max-height: 8; -fx-background-radius: 4;"/>
+            <Label fx:id="dbLabel" text="H2"/>
+        </HBox>
+    </bottom>
+
 </BorderPane>

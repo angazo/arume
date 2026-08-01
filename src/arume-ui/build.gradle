@@ -12,6 +12,9 @@ javafx {
 dependencies {
     implementation(libs.spring.boot)
     implementation(libs.atlantafx.base)
+    implementation(libs.ikonli.javafx)
+    implementation(libs.ikonli.fontawesome5)
+    implementation(libs.ikonli.materialdesign2)
     implementation(libs.slf4j.api)
     implementation(libs.snakeyaml)
 

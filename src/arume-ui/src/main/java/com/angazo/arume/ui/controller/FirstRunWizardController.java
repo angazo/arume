@@ -15,6 +15,10 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseButton;
+import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.SVGPath;
 import javafx.stage.DirectoryChooser;
@@ -100,11 +104,26 @@ public class FirstRunWizardController {
     @FXML
     private Button saveButton;
 
+    @FXML
+    private HBox titleBar;
+
+    @FXML
+    private Button closeBtn;
+
+    @FXML
+    private ImageView logoView;
+
     private WizardResult result;
     private boolean saved = false;
+    private double dragOffsetX;
+    private double dragOffsetY;
 
     @FXML
     public void initialize() {
+        closeBtn.setText("\u2715");
+        logoView.setImage(new Image(getClass().getResourceAsStream("/icons/arume.png")));
+        setupTitleBarDrag();
+
         var dbTypes = FXCollections.observableArrayList(
             I18nManager.getString("wizard.dbType.h2")
         );
@@ -126,11 +145,10 @@ public class FirstRunWizardController {
             I18nManager.setLanguage(code);
         });
 
-        var themes = FXCollections.observableArrayList(
-            I18nManager.getString("wizard.theme.light"),
-            I18nManager.getString("wizard.theme.dark"),
-            I18nManager.getString("wizard.theme.darkIntense")
-        );
+        var themes = FXCollections.<String>observableArrayList();
+        for (var theme : ThemeConfig.values()) {
+            themes.add(I18nManager.getString(theme.getLabelKey()));
+        }
         themeCombo.setItems(themes);
         themeCombo.getSelectionModel().selectFirst();
 
@@ -167,9 +185,12 @@ public class FirstRunWizardController {
 
         themeLabel.setText(I18nManager.getString("wizard.theme"));
         var themeItems = themeCombo.getItems();
-        themeItems.set(0, I18nManager.getString("wizard.theme.light"));
-        themeItems.set(1, I18nManager.getString("wizard.theme.dark"));
-        themeItems.set(2, I18nManager.getString("wizard.theme.darkIntense"));
+        var configThemes = ThemeConfig.values();
+        for (var i = 0; i < configThemes.length; i++) {
+            if (i < themeItems.size()) {
+                themeItems.set(i, I18nManager.getString(configThemes[i].getLabelKey()));
+            }
+        }
 
         dbTypeLabel.setText(I18nManager.getString("wizard.dbType"));
         dbTypeCombo.getItems().set(0, I18nManager.getString("wizard.dbType.h2"));
@@ -285,6 +306,24 @@ public class FirstRunWizardController {
         );
         saved = true;
         closeWindow();
+    }
+
+    private void setupTitleBarDrag() {
+        titleBar.setOnMousePressed(event -> {
+            if (event.getButton() == MouseButton.PRIMARY) {
+                var stage = (Stage) titleBar.getScene().getWindow();
+                dragOffsetX = event.getScreenX() - stage.getX();
+                dragOffsetY = event.getScreenY() - stage.getY();
+            }
+        });
+
+        titleBar.setOnMouseDragged(event -> {
+            if (event.getButton() == MouseButton.PRIMARY) {
+                var stage = (Stage) titleBar.getScene().getWindow();
+                stage.setX(event.getScreenX() - dragOffsetX);
+                stage.setY(event.getScreenY() - dragOffsetY);
+            }
+        });
     }
 
     @FXML

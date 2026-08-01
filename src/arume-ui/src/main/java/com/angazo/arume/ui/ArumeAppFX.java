@@ -9,6 +9,7 @@ import com.angazo.arume.ui.config.ConfigException;
 import com.angazo.arume.ui.config.ConfigManager;
 import com.angazo.arume.ui.config.ThemeConfig;
 import com.angazo.arume.ui.controller.FirstRunWizardController;
+import com.angazo.arume.ui.controller.MainController;
 import com.angazo.arume.ui.controller.WizardResult;
 import com.angazo.arume.ui.i18n.I18nManager;
 import javafx.application.Application;
@@ -21,6 +22,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.stage.StageStyle;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -48,11 +50,8 @@ public class ArumeAppFX {
 
         @Override
         public void start(Stage primaryStage) throws Exception {
+            primaryStage.initStyle(StageStyle.UNDECORATED);
             ThemeConfig.LIGHT.apply();
-            primaryStage.setTitle("Arume");
-            primaryStage.setScene(new Scene(new BorderPane(), 800, 600));
-            primaryStage.centerOnScreen();
-            primaryStage.show();
 
             ArumeConfig config;
 
@@ -64,7 +63,7 @@ public class ArumeAppFX {
                     log.error("Failed to load configuration", e);
                     if (handleDecryptError(primaryStage)) {
                         Files.deleteIfExists(configManager.getJarDir().resolve("arume.yml"));
-                        config = runWizardFlow(primaryStage);
+                        config = runWizardFlow(null);
                         if (config == null) { Platform.exit(); return; }
                     } else {
                         Platform.exit();
@@ -73,9 +72,11 @@ public class ArumeAppFX {
                 }
             } else {
                 log.info("No configuration found, showing first-run wizard");
-                config = runWizardFlow(primaryStage);
+                config = runWizardFlow(null);
                 if (config == null) { Platform.exit(); return; }
             }
+
+            I18nManager.init(config.language());
 
             ThemeConfig.fromId(config.theme()).apply();
             primaryStage.setTitle(I18nManager.getString("app.name"));
@@ -86,6 +87,8 @@ public class ArumeAppFX {
             springContext = springBootStarter.get();
 
             replaceWithMainScene(primaryStage);
+            primaryStage.centerOnScreen();
+            primaryStage.show();
         }
 
         @Override
@@ -116,19 +119,22 @@ public class ArumeAppFX {
                 var controller = (FirstRunWizardController) loader.getController();
                 controller.setDefaultStoragePath(configManager.getDefaultDbDir().toString());
 
-                var scene = new Scene(root, 494, 800);
+                var scene = new Scene(root, 494, 840);
+                scene.getStylesheets().add(getClass().getResource("/css/arume.css").toExternalForm());
                 var wizardStage = new Stage();
-                wizardStage.setTitle(I18nManager.getString("wizard.title"));
+                wizardStage.initStyle(StageStyle.UNDECORATED);
                 wizardStage.initOwner(owner);
                 wizardStage.initModality(Modality.APPLICATION_MODAL);
                 wizardStage.setResizable(false);
                 wizardStage.setScene(scene);
 
                 wizardStage.setOnShown(e -> {
-                    double x = owner.getX() + (owner.getWidth() - wizardStage.getWidth()) / 2;
-                    double y = owner.getY() + (owner.getHeight() - wizardStage.getHeight()) / 2;
-                    wizardStage.setX(x);
-                    wizardStage.setY(y);
+                    if (owner != null) {
+                        wizardStage.setX(owner.getX() + (owner.getWidth() - wizardStage.getWidth()) / 2);
+                        wizardStage.setY(owner.getY() + (owner.getHeight() - wizardStage.getHeight()) / 2);
+                    } else {
+                        wizardStage.centerOnScreen();
+                    }
                 });
 
                 wizardStage.showAndWait();
@@ -179,7 +185,13 @@ public class ArumeAppFX {
             var loader = new FXMLLoader(getClass().getResource("/fxml/main.fxml"));
             loader.setControllerFactory(springContext::getBean);
             Parent root = loader.load();
-            stage.setScene(new Scene(root, 800, 600));
+            var scene = new Scene(root, 1200, 800);
+            scene.getStylesheets().add(getClass().getResource("/css/arume.css").toExternalForm());
+            stage.setScene(scene);
+            stage.centerOnScreen();
+
+            var controller = (MainController) loader.getController();
+            controller.setStage(stage);
         }
     }
 }

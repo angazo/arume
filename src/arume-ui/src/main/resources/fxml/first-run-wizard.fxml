@@ -8,77 +8,92 @@
 <?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
 <VBox xmlns="http://javafx.com/javafx"
       xmlns:fx="http://javafx.com/fxml"
       fx:controller="com.angazo.arume.ui.controller.FirstRunWizardController"
-      spacing="10" prefWidth="494" prefHeight="800">
+      spacing="10" prefWidth="494" styleClass="modal-root">
 
-    <HBox spacing="10">
-        <VBox spacing="5">
-            <Label fx:id="languageLabel"/>
-            <ComboBox fx:id="languageCombo" prefWidth="200"/>
-        </VBox>
-        <VBox spacing="5">
-            <Label fx:id="themeLabel"/>
-            <ComboBox fx:id="themeCombo" prefWidth="150"/>
-        </VBox>
+    <HBox fx:id="titleBar" styleClass="title-bar" alignment="CENTER_LEFT">
+        <ImageView fx:id="logoView" fitWidth="22" fitHeight="22" preserveRatio="true">
+            <HBox.margin>
+                <Insets right="20"/>
+            </HBox.margin>
+        </ImageView>
+        <Label text="Arume — Setup"/>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button fx:id="closeBtn" styleClass="window-close" onAction="#onCancel"/>
     </HBox>
 
-    <Separator/>
+    <VBox spacing="10" VBox.vgrow="ALWAYS">
+        <padding>
+            <Insets top="0" right="10" bottom="10" left="10"/>
+        </padding>
 
-    <Label fx:id="dbTypeLabel"/>
-    <ComboBox fx:id="dbTypeCombo" prefWidth="300"/>
+        <HBox spacing="10">
+            <VBox spacing="5">
+                <Label fx:id="languageLabel"/>
+                <ComboBox fx:id="languageCombo" prefWidth="200"/>
+            </VBox>
+            <VBox spacing="5">
+                <Label fx:id="themeLabel"/>
+                <ComboBox fx:id="themeCombo" prefWidth="150"/>
+            </VBox>
+        </HBox>
 
-    <Separator/>
+        <Separator/>
 
-    <Label fx:id="h2SettingsLabel" style="-fx-font-weight: bold;"/>
+        <Label fx:id="dbTypeLabel"/>
+        <ComboBox fx:id="dbTypeCombo" prefWidth="300"/>
 
-    <Label fx:id="storagePathLabel"/>
-    <HBox spacing="8">
-        <TextField fx:id="storagePathField" HBox.hgrow="ALWAYS" prefWidth="350"/>
-        <Button fx:id="browseButton" onAction="#onBrowse"/>
-    </HBox>
-    <Label fx:id="storageHintLabel" style="-fx-font-size: 11px; -fx-text-fill: gray;"/>
+        <Separator/>
 
-    <Separator/>
+        <Label fx:id="h2SettingsLabel" style="-fx-font-weight: bold;"/>
 
-    <Label fx:id="credentialsLabel" style="-fx-font-weight: bold;"/>
+        <Label fx:id="storagePathLabel"/>
+        <HBox spacing="8">
+            <TextField fx:id="storagePathField" HBox.hgrow="ALWAYS" prefWidth="350"/>
+            <Button fx:id="browseButton" onAction="#onBrowse"/>
+        </HBox>
+        <Label fx:id="storageHintLabel" style="-fx-font-size: 11px; -fx-text-fill: gray;"/>
 
-    <Label fx:id="usernameLabel"/>
-    <TextField fx:id="usernameField"/>
+        <Separator/>
 
-    <Label fx:id="passwordLabel"/>
-    <HBox spacing="8">
-        <PasswordField fx:id="passwordField" HBox.hgrow="ALWAYS"/>
-        <TextField fx:id="passwordTextField" visible="false" managed="false" HBox.hgrow="ALWAYS"/>
-        <Button fx:id="togglePasswordButton" onAction="#onTogglePassword" prefWidth="35"/>
-    </HBox>
+        <Label fx:id="credentialsLabel" style="-fx-font-weight: bold;"/>
 
-    <Separator/>
+        <Label fx:id="usernameLabel"/>
+        <TextField fx:id="usernameField"/>
 
-    <Label fx:id="dbEncryptHeaderLabel" style="-fx-font-weight: bold;"/>
+        <Label fx:id="passwordLabel"/>
+        <HBox spacing="8">
+            <PasswordField fx:id="passwordField" HBox.hgrow="ALWAYS"/>
+            <TextField fx:id="passwordTextField" visible="false" managed="false" HBox.hgrow="ALWAYS"/>
+            <Button fx:id="togglePasswordButton" onAction="#onTogglePassword" prefWidth="35"/>
+        </HBox>
 
-    <Label fx:id="dbEncryptPasswordLabel"/>
-    <HBox spacing="8">
-        <PasswordField fx:id="dbEncryptPasswordField" HBox.hgrow="ALWAYS"/>
-        <TextField fx:id="dbEncryptTextField" visible="false" managed="false" HBox.hgrow="ALWAYS"/>
-        <Button fx:id="toggleDbEncryptButton" onAction="#onToggleDbEncryptPassword" prefWidth="35"/>
-    </HBox>
+        <Separator/>
 
-    <Separator/>
+        <Label fx:id="dbEncryptHeaderLabel" style="-fx-font-weight: bold;"/>
 
-    <CheckBox fx:id="encryptCheckbox"/>
+        <Label fx:id="dbEncryptPasswordLabel"/>
+        <HBox spacing="8">
+            <PasswordField fx:id="dbEncryptPasswordField" HBox.hgrow="ALWAYS"/>
+            <TextField fx:id="dbEncryptTextField" visible="false" managed="false" HBox.hgrow="ALWAYS"/>
+            <Button fx:id="toggleDbEncryptButton" onAction="#onToggleDbEncryptPassword" prefWidth="35"/>
+        </HBox>
 
-    <HBox spacing="10" style="-fx-alignment: CENTER_RIGHT;">
-        <Button fx:id="cancelButton" onAction="#onCancel"/>
-        <Button fx:id="saveButton" onAction="#onSave" defaultButton="true"/>
-    </HBox>
+        <Separator/>
 
-    <padding>
-        <Insets top="10" right="10" bottom="10" left="10"/>
-    </padding>
+        <CheckBox fx:id="encryptCheckbox"/>
+
+        <HBox spacing="10" style="-fx-alignment: CENTER_RIGHT;">
+            <Button fx:id="cancelButton" onAction="#onCancel"/>
+            <Button fx:id="saveButton" onAction="#onSave" defaultButton="true"/>
+        </HBox>
+    </VBox>
 
 </VBox>
