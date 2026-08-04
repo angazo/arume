@@ -35,6 +35,11 @@
                 </items>
             </MenuButton>
             <Region HBox.hgrow="ALWAYS"/>
+            <ImageView fx:id="countryFlag" fitWidth="32" fitHeight="20" preserveRatio="true">
+                <HBox.margin>
+                    <Insets right="6"/>
+                </HBox.margin>
+            </ImageView>
             <Button fx:id="languageBtn" onAction="#onLanguageToggle"/>
             <Button fx:id="themeBtn" onAction="#onThemeToggle"/>
             <Button fx:id="minimizeBtn"/>

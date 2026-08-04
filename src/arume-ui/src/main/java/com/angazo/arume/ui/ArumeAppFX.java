@@ -7,6 +7,7 @@ import java.util.function.Supplier;
 import com.angazo.arume.ui.config.ArumeConfig;
 import com.angazo.arume.ui.config.ConfigException;
 import com.angazo.arume.ui.config.ConfigManager;
+import com.angazo.arume.ui.config.Country;
 import com.angazo.arume.ui.config.ThemeConfig;
 import com.angazo.arume.ui.controller.FirstRunWizardController;
 import com.angazo.arume.ui.controller.MainController;
@@ -98,17 +99,17 @@ public class ArumeAppFX {
             }
         }
 
-        private ArumeConfig runWizardFlow(Stage owner) {
-            I18nManager.init(I18nManager.detectDefaultLanguage());
-            var wizardResult = showFirstRunWizard(owner);
-            if (wizardResult == null) {
-                log.info("First-run wizard cancelled, exiting application");
-                return null;
-            }
-            var config = buildConfigFromWizard(wizardResult);
-            configManager.save(config);
-            return config;
-        }
+private ArumeConfig runWizardFlow(Stage owner) {
+    I18nManager.init(Country.detectDefault().officialLanguage());
+    var wizardResult = showFirstRunWizard(owner);
+    if (wizardResult == null) {
+        log.info("First-run wizard cancelled, exiting application");
+        return null;
+    }
+    var config = buildConfigFromWizard(wizardResult);
+    configManager.save(config);
+    return config;
+}
 
         private WizardResult showFirstRunWizard(Stage owner) {
             try {
@@ -119,7 +120,7 @@ public class ArumeAppFX {
                 var controller = (FirstRunWizardController) loader.getController();
                 controller.setDefaultStoragePath(configManager.getDefaultDbDir().toString());
 
-                var scene = new Scene(root, 494, 840);
+                var scene = new Scene(root, 600, 840);
                 scene.getStylesheets().add(getClass().getResource("/css/arume.css").toExternalForm());
                 var wizardStage = new Stage();
                 wizardStage.initStyle(StageStyle.UNDECORATED);
@@ -155,6 +156,7 @@ public class ArumeAppFX {
                 result.encrypt()
             );
             return new ArumeConfig(
+                result.country(),
                 result.language(),
                 result.dbType(),
                 result.encrypt(),
