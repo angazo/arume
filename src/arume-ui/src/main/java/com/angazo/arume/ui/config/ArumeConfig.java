@@ -12,6 +12,6 @@ public record ArumeConfig(
 
     public ArumeConfig {
         if (theme == null) theme = "light";
-        if (country == null) country = "es";
+        if (country == null) country = "esp";
     }
 }
