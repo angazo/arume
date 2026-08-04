@@ -39,6 +39,7 @@ class ConfigManagerTest {
     @Test
     void shouldSaveAndLoadConfig() {
         var config = new ArumeConfig(
+            "us",
             "en",
             "h2",
             false,
@@ -51,6 +52,7 @@ class ConfigManagerTest {
         assertTrue(configManager.exists());
 
         var loaded = configManager.load();
+        assertEquals("us", loaded.country());
         assertEquals("en", loaded.language());
         assertEquals("h2", loaded.dbType());
         assertFalse(loaded.encrypt());
@@ -61,6 +63,7 @@ class ConfigManagerTest {
     @Test
     void shouldApplyConfigToSystemProperties() {
         var config = new ArumeConfig(
+            "us",
             "en",
             "h2",
             false,
@@ -130,6 +133,7 @@ class ConfigManagerTest {
     @Test
     void shouldHandleEncryptFlag() {
         var config = new ArumeConfig(
+            "us",
             "en",
             "h2",
             true,
@@ -147,6 +151,7 @@ class ConfigManagerTest {
     void shouldSaveAndLoadLanguage() {
         var config = new ArumeConfig(
             "es",
+            "es",
             "h2",
             false,
             "jdbc:h2:file:/tmp/db;MODE=PostgreSQL;CIPHER=AES;USER=admin;PASSWORD=filepass12 userpass12",
@@ -162,6 +167,7 @@ class ConfigManagerTest {
     @Test
     void shouldEncryptUrlWhenEncryptTrue() {
         var config = new ArumeConfig(
+            "us",
             "en",
             "h2",
             true,
@@ -193,6 +199,7 @@ class ConfigManagerTest {
     void shouldSavePlainUrlWhenEncryptFalse() {
         var plainUrl = "jdbc:h2:file:/tmp/db;MODE=PostgreSQL;CIPHER=AES;USER=admin;PASSWORD=filepass12 userpass12";
         var config = new ArumeConfig(
+            "us",
             "en",
             "h2",
             false,
@@ -223,6 +230,7 @@ class ConfigManagerTest {
     void shouldLoadAndDecryptEncryptedUrl() {
         var plainUrl = "jdbc:h2:file:/tmp/db;MODE=PostgreSQL;CIPHER=AES;USER=admin;PASSWORD=filepass12 userpass12";
         var config = new ArumeConfig(
+            "us",
             "en",
             "h2",
             true,
@@ -245,12 +253,78 @@ class ConfigManagerTest {
 
         var loaded = configManager.load();
         assertEquals("en", loaded.language());
+        assertEquals("es", loaded.country(), "Missing country falls back to Spain");
         assertEquals("jdbc:h2:file:/tmp/db;CIPHER=AES;USER=admin;PASSWORD=filepass12 userpass12", loaded.url());
+    }
+
+    @Test
+    void shouldDefaultToSpainWhenCountryMissing() throws Exception {
+        var yml = "arume:\n  language: en\n  db:\n    type: h2\n    encrypt: false\nspring:\n  datasource:\n    url: jdbc:h2:file:/tmp/db;CIPHER=AES;USER=admin;PASSWORD=filepass12 userpass12\n    driver-class-name: org.h2.Driver\n";
+        Files.writeString(tempDir.resolve("arume.yml"), yml);
+
+        var loaded = configManager.load();
+        assertEquals("es", loaded.country());
+    }
+
+    @Test
+    void shouldSaveAndLoadCountry() {
+        var config = new ArumeConfig(
+            "cl",
+            "es",
+            "h2",
+            false,
+            "jdbc:h2:file:/tmp/db;MODE=PostgreSQL;CIPHER=AES;USER=admin;PASSWORD=filepass12 userpass12",
+            "org.h2.Driver",
+            "light"
+        );
+        configManager.save(config);
+
+        var loaded = configManager.load();
+        assertEquals("cl", loaded.country());
+    }
+
+    @Test
+    void shouldUpdateLanguagePreservingCountry() {
+        var config = new ArumeConfig(
+            "cl",
+            "es",
+            "h2",
+            false,
+            "jdbc:h2:file:/tmp/db;MODE=PostgreSQL;CIPHER=AES;USER=admin;PASSWORD=filepass12 userpass12",
+            "org.h2.Driver",
+            "light"
+        );
+        configManager.save(config);
+
+        configManager.updateLanguage("en");
+        var loaded = configManager.load();
+        assertEquals("en", loaded.language());
+        assertEquals("cl", loaded.country(), "Country survives language update");
+    }
+
+    @Test
+    void shouldUpdateThemePreservingCountry() {
+        var config = new ArumeConfig(
+            "sg",
+            "en",
+            "h2",
+            false,
+            "jdbc:h2:file:/tmp/db;MODE=PostgreSQL;CIPHER=AES;USER=admin;PASSWORD=filepass12 userpass12",
+            "org.h2.Driver",
+            "light"
+        );
+        configManager.save(config);
+
+        configManager.updateTheme("dark");
+        var loaded = configManager.load();
+        assertEquals("dark", loaded.theme());
+        assertEquals("sg", loaded.country(), "Country survives theme update");
     }
 
     @Test
     void shouldUpdateLanguage() {
         var config = new ArumeConfig(
+            "us",
             "en",
             "h2",
             false,
@@ -270,6 +344,7 @@ class ConfigManagerTest {
     void shouldUpdateLanguagePreservingEncryptedUrl() {
         var plainUrl = "jdbc:h2:file:/tmp/db;MODE=PostgreSQL;CIPHER=AES;USER=admin;PASSWORD=filepass12 userpass12";
         var config = new ArumeConfig(
+            "us",
             "en",
             "h2",
             true,
@@ -290,6 +365,7 @@ class ConfigManagerTest {
     void shouldUpdateThemePreservingEncryptedUrl() {
         var plainUrl = "jdbc:h2:file:/tmp/db;MODE=PostgreSQL;CIPHER=AES;USER=admin;PASSWORD=filepass12 userpass12";
         var config = new ArumeConfig(
+            "us",
             "en",
             "h2",
             true,

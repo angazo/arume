@@ -16,7 +16,7 @@
 <VBox xmlns="http://javafx.com/javafx"
       xmlns:fx="http://javafx.com/fxml"
       fx:controller="com.angazo.arume.ui.controller.FirstRunWizardController"
-      spacing="10" prefWidth="494" styleClass="modal-root">
+      spacing="10" prefWidth="600" styleClass="modal-root">
 
     <HBox fx:id="titleBar" styleClass="title-bar" alignment="CENTER_LEFT">
         <ImageView fx:id="logoView" fitWidth="22" fitHeight="22" preserveRatio="true">
@@ -36,8 +36,12 @@
 
         <HBox spacing="10">
             <VBox spacing="5">
+                <Label fx:id="countryLabel"/>
+                <ComboBox fx:id="countryCombo" prefWidth="240"/>
+            </VBox>
+            <VBox spacing="5">
                 <Label fx:id="languageLabel"/>
-                <ComboBox fx:id="languageCombo" prefWidth="200"/>
+                <ComboBox fx:id="languageCombo" prefWidth="180"/>
             </VBox>
             <VBox spacing="5">
                 <Label fx:id="themeLabel"/>

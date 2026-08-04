@@ -2,6 +2,7 @@ package com.angazo.arume.ui.controller;
 
 import java.io.File;
 
+import com.angazo.arume.ui.config.Country;
 import com.angazo.arume.ui.config.ThemeConfig;
 import com.angazo.arume.ui.i18n.I18nManager;
 import javafx.collections.FXCollections;
@@ -25,6 +26,12 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 
 public class FirstRunWizardController {
+
+    @FXML
+    private ComboBox<String> countryCombo;
+
+    @FXML
+    private Label countryLabel;
 
     @FXML
     private ComboBox<String> languageCombo;
@@ -130,14 +137,25 @@ public class FirstRunWizardController {
         dbTypeCombo.setItems(dbTypes);
         dbTypeCombo.getSelectionModel().selectFirst();
 
+        var countries = FXCollections.<String>observableArrayList();
+        for (var c : Country.values()) {
+            countries.add(I18nManager.getString(c.getLabelKey()));
+        }
+        countryCombo.setItems(countries);
+
+        var defaultCountry = Country.detectDefault();
+        var defaultCountryLabel = I18nManager.getString(defaultCountry.getLabelKey());
+        countryCombo.getSelectionModel().select(defaultCountryLabel);
+
         var languages = FXCollections.observableArrayList(
             I18nManager.getString("wizard.lang.en"),
             I18nManager.getString("wizard.lang.es")
         );
         languageCombo.setItems(languages);
 
-        var currentLanguage = I18nManager.getCurrentLanguage();
-        languageCombo.getSelectionModel().select("es".equals(currentLanguage) ? 1 : 0);
+        var languageForCountry = defaultCountry.officialLanguage();
+        var languageLabelForDefault = I18nManager.getString("wizard.lang." + languageForCountry);
+        languageCombo.getSelectionModel().select(languageLabelForDefault);
 
         languageCombo.valueProperty().addListener((obs, old, newVal) -> {
             if (newVal == null) return;
@@ -171,46 +189,59 @@ public class FirstRunWizardController {
         refreshTexts();
     }
 
-    private void refreshTexts() {
-        var stageScene = saveButton.getScene();
-        if (stageScene != null) {
-            var stage = (Stage) stageScene.getWindow();
-            stage.setTitle(I18nManager.getString("wizard.title"));
-        }
-
-        languageLabel.setText(I18nManager.getString("wizard.language"));
-        var items = languageCombo.getItems();
-        items.set(0, I18nManager.getString("wizard.lang.en"));
-        items.set(1, I18nManager.getString("wizard.lang.es"));
-
-        themeLabel.setText(I18nManager.getString("wizard.theme"));
-        var themeItems = themeCombo.getItems();
-        var configThemes = ThemeConfig.values();
-        for (var i = 0; i < configThemes.length; i++) {
-            if (i < themeItems.size()) {
-                themeItems.set(i, I18nManager.getString(configThemes[i].getLabelKey()));
-            }
-        }
-
-        dbTypeLabel.setText(I18nManager.getString("wizard.dbType"));
-        dbTypeCombo.getItems().set(0, I18nManager.getString("wizard.dbType.h2"));
-
-        h2SettingsLabel.setText(I18nManager.getString("wizard.h2Settings"));
-        storagePathLabel.setText(I18nManager.getString("wizard.storagePath"));
-        browseButton.setText(I18nManager.getString("wizard.browse"));
-        storageHintLabel.setText(I18nManager.getString("wizard.storageHint"));
-
-        credentialsLabel.setText(I18nManager.getString("wizard.credentials"));
-        usernameLabel.setText(I18nManager.getString("wizard.username"));
-        passwordLabel.setText(I18nManager.getString("wizard.password"));
-
-        dbEncryptHeaderLabel.setText(I18nManager.getString("wizard.dbEncryptHeader"));
-        dbEncryptPasswordLabel.setText(I18nManager.getString("wizard.dbEncryptPassword"));
-
-        encryptCheckbox.setText(I18nManager.getString("wizard.encrypt"));
-        cancelButton.setText(I18nManager.getString("wizard.cancel"));
-        saveButton.setText(I18nManager.getString("wizard.save"));
+private void refreshTexts() {
+    var stageScene = saveButton.getScene();
+    if (stageScene != null) {
+        var stage = (Stage) stageScene.getWindow();
+        stage.setTitle(I18nManager.getString("wizard.title"));
     }
+
+    countryLabel.setText(I18nManager.getString("wizard.country"));
+    var previousCountryLabel = countryCombo.getValue();
+    var previousCountry = resolveCountryCode(previousCountryLabel);
+    var countryItems = countryCombo.getItems();
+    for (var i = 0; i < Country.values().length; i++) {
+        var label = I18nManager.getString(Country.values()[i].getLabelKey());
+        if (i < countryItems.size()) {
+            countryItems.set(i, label);
+        }
+    }
+    var newCountryLabel = I18nManager.getString(Country.fromCode(previousCountry).getLabelKey());
+    countryCombo.getSelectionModel().select(newCountryLabel);
+
+    languageLabel.setText(I18nManager.getString("wizard.language"));
+    var items = languageCombo.getItems();
+    items.set(0, I18nManager.getString("wizard.lang.en"));
+    items.set(1, I18nManager.getString("wizard.lang.es"));
+
+    themeLabel.setText(I18nManager.getString("wizard.theme"));
+    var themeItems = themeCombo.getItems();
+    var configThemes = ThemeConfig.values();
+    for (var i = 0; i < configThemes.length; i++) {
+        if (i < themeItems.size()) {
+            themeItems.set(i, I18nManager.getString(configThemes[i].getLabelKey()));
+        }
+    }
+
+    dbTypeLabel.setText(I18nManager.getString("wizard.dbType"));
+    dbTypeCombo.getItems().set(0, I18nManager.getString("wizard.dbType.h2"));
+
+    h2SettingsLabel.setText(I18nManager.getString("wizard.h2Settings"));
+    storagePathLabel.setText(I18nManager.getString("wizard.storagePath"));
+    browseButton.setText(I18nManager.getString("wizard.browse"));
+    storageHintLabel.setText(I18nManager.getString("wizard.storageHint"));
+
+    credentialsLabel.setText(I18nManager.getString("wizard.credentials"));
+    usernameLabel.setText(I18nManager.getString("wizard.username"));
+    passwordLabel.setText(I18nManager.getString("wizard.password"));
+
+    dbEncryptHeaderLabel.setText(I18nManager.getString("wizard.dbEncryptHeader"));
+    dbEncryptPasswordLabel.setText(I18nManager.getString("wizard.dbEncryptPassword"));
+
+    encryptCheckbox.setText(I18nManager.getString("wizard.encrypt"));
+    cancelButton.setText(I18nManager.getString("wizard.cancel"));
+    saveButton.setText(I18nManager.getString("wizard.save"));
+}
 
     @FXML
     public void onTogglePassword() {
@@ -288,25 +319,27 @@ public class FirstRunWizardController {
         }
     }
 
-    @FXML
-    public void onSave() {
-        if (!validateForm()) {
-            return;
-        }
-        var themeId = resolveThemeId(themeCombo.getValue());
-        result = new WizardResult(
-            I18nManager.getCurrentLanguage(),
-            "h2",
-            storagePathField.getText().trim(),
-            usernameField.getText().trim(),
-            passwordField.getText(),
-            dbEncryptPasswordField.getText(),
-            encryptCheckbox.isSelected(),
-            themeId
-        );
-        saved = true;
-        closeWindow();
+@FXML
+public void onSave() {
+    if (!validateForm()) {
+        return;
     }
+    var themeId = resolveThemeId(themeCombo.getValue());
+    var countryCode = resolveCountryCode(countryCombo.getValue());
+    result = new WizardResult(
+        countryCode,
+        I18nManager.getCurrentLanguage(),
+        "h2",
+        storagePathField.getText().trim(),
+        usernameField.getText().trim(),
+        passwordField.getText(),
+        dbEncryptPasswordField.getText(),
+        encryptCheckbox.isSelected(),
+        themeId
+    );
+    saved = true;
+    closeWindow();
+}
 
     private void setupTitleBarDrag() {
         titleBar.setOnMousePressed(event -> {
@@ -388,13 +421,23 @@ public class FirstRunWizardController {
         return saved;
     }
 
-    private static String resolveThemeId(String displayLabel) {
-        if (displayLabel == null) return "light";
-        for (var theme : ThemeConfig.values()) {
-            if (I18nManager.getString(theme.getLabelKey()).equals(displayLabel)) {
-                return theme.getId();
-            }
+private static String resolveThemeId(String displayLabel) {
+    if (displayLabel == null) return "light";
+    for (var theme : ThemeConfig.values()) {
+        if (I18nManager.getString(theme.getLabelKey()).equals(displayLabel)) {
+            return theme.getId();
         }
-        return "light";
     }
+    return "light";
+}
+
+private static String resolveCountryCode(String displayLabel) {
+    if (displayLabel == null) return Country.ES.code();
+    for (var c : Country.values()) {
+        if (I18nManager.getString(c.getLabelKey()).equals(displayLabel)) {
+            return c.code();
+        }
+    }
+    return Country.ES.code();
+}
 }

@@ -12,6 +12,7 @@ import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
+import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
@@ -40,6 +41,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.angazo.arume.ui.config.ConfigManager;
+import com.angazo.arume.ui.config.Country;
 import com.angazo.arume.ui.config.ThemeConfig;
 import com.angazo.arume.ui.i18n.I18nManager;
 
@@ -54,11 +56,13 @@ public class MainController {
 
     @FXML private MenuItem aboutMenuItem;
 
-    @FXML private Button languageBtn;
+@FXML private Button languageBtn;
 
-    @FXML private Button themeBtn;
+@FXML private Button themeBtn;
 
-    @FXML private Button minimizeBtn;
+@FXML private ImageView countryFlag;
+
+@FXML private Button minimizeBtn;
 
     @FXML private Button maximizeBtn;
 
@@ -113,17 +117,18 @@ public class MainController {
         setupWindowDrag();
     }
 
-    @FXML
-    public void initialize() {
-        setupIcons();
-        setupNavigation();
-        setupStatusBar();
+@FXML
+public void initialize() {
+    setupIcons();
+    setupNavigation();
+    setupStatusBar();
+    setupCountryFlag();
 
-        dashboardBtn.setSelected(true);
+    dashboardBtn.setSelected(true);
 
-        refreshTexts();
-        I18nManager.onLanguageChange(this::onLanguageChanged);
-    }
+    refreshTexts();
+    I18nManager.onLanguageChange(this::onLanguageChanged);
+}
 
     private void setupIcons() {
         var size = 16;
@@ -134,12 +139,10 @@ public class MainController {
 
         helpMenu.setGraphic(FontIcon.of(MaterialDesignH.HELP_CIRCLE, size));
 
-        sunIcon = FontIcon.of(MaterialDesignW.WHITE_BALANCE_SUNNY, size);
-        moonIcon = FontIcon.of(FontAwesomeSolid.MOON, size);
+sunIcon = FontIcon.of(MaterialDesignW.WHITE_BALANCE_SUNNY, size);
+moonIcon = FontIcon.of(FontAwesomeSolid.MOON, size);
 
-        languageBtn.setGraphic(FontIcon.of(FontAwesomeSolid.GLOBE, size));
-
-        minimizeBtn.setGraphic(FontIcon.of(MaterialDesignW.WINDOW_MINIMIZE, size));
+minimizeBtn.setGraphic(FontIcon.of(MaterialDesignW.WINDOW_MINIMIZE, size));
         maximizeBtn.setGraphic(FontIcon.of(MaterialDesignW.WINDOW_MAXIMIZE, size));
         closeBtn.setGraphic(FontIcon.of(MaterialDesignW.WINDOW_CLOSE, size));
 
@@ -338,13 +341,43 @@ public class MainController {
         showAboutDialog();
     }
 
-    @FXML
-    public void onLanguageToggle() {
-        var current = I18nManager.getCurrentLanguage();
-        var next = "es".equals(current) ? "en" : "es";
-        I18nManager.setLanguage(next);
-        configManager.updateLanguage(next);
-    }
+private static Country loadConfiguredCountry() {
+    var cm = new ConfigManager();
+    var config = cm.load();
+    return Country.fromCode(config.country());
+}
+
+private Tooltip countryFlagTooltip;
+
+private void setupCountryFlag() {
+    var country = loadConfiguredCountry();
+    var flagPath = "/icons/flags/" + country.code() + ".png";
+    var flagImage = new Image(getClass().getResourceAsStream(flagPath));
+    countryFlag.setImage(flagImage);
+    countryFlag.setMouseTransparent(true);
+    countryFlag.setFitWidth(32);
+    countryFlag.setFitHeight(20);
+    countryFlag.setPreserveRatio(true);
+    countryFlagTooltip = new Tooltip();
+    Tooltip.install(countryFlag, countryFlagTooltip);
+    updateCountryFlagTooltip(country);
+}
+
+private void updateCountryFlagTooltip(Country country) {
+    if (countryFlagTooltip == null) return;
+    var countryName = I18nManager.getString(country.getLabelKey());
+    var pattern = I18nManager.getString("main.country.tooltip");
+    var text = java.text.MessageFormat.format(pattern, countryName);
+    countryFlagTooltip.setText(text);
+}
+
+@FXML
+public void onLanguageToggle() {
+    var current = I18nManager.getCurrentLanguage();
+    var next = "es".equals(current) ? "en" : "es";
+    I18nManager.setLanguage(next);
+    configManager.updateLanguage(next);
+}
 
     @FXML
     public void onThemeToggle() {
@@ -362,18 +395,17 @@ public class MainController {
         themeBtn.setGraphic(icon);
     }
 
-    private void onLanguageChanged() {
-        refreshTexts();
-        selectLanguageIcon();
-    }
+private void onLanguageChanged() {
+    refreshTexts();
+    selectLanguageText();
+    updateCountryFlagTooltip(loadConfiguredCountry());
+}
 
-    private void selectLanguageIcon() {
-        var current = I18nManager.getCurrentLanguage();
-        var icon = "es".equals(current)
-                ? FontIcon.of(FontAwesomeSolid.FLAG, 16)
-                : FontIcon.of(FontAwesomeSolid.FLAG_USA, 16);
-        languageBtn.setGraphic(icon);
-    }
+private void selectLanguageText() {
+    var current = I18nManager.getCurrentLanguage();
+    languageBtn.setGraphic(null);
+    languageBtn.setText(I18nManager.getString("main.language." + current));
+}
 
     private void updateStatusBarTooltip() {
         var connected = "connected".equals(dbDot.getAccessibleText());
@@ -384,18 +416,20 @@ public class MainController {
         dbLabel.setAccessibleHelp(text);
     }
 
-    private void refreshTexts() {
-        selectLanguageIcon();
-        selectCurrentThemeIcon();
+private void refreshTexts() {
+    selectLanguageText();
+    selectCurrentThemeIcon();
 
-        dashboardBtn.setText(I18nManager.getString("nav.dashboard"));
-        invoicesBtn.setText(I18nManager.getString("nav.invoices"));
-        accountingBtn.setText(I18nManager.getString("nav.accounting"));
-        settingsBtn.setText(I18nManager.getString("nav.settings"));
+    updateCountryFlagTooltip(loadConfiguredCountry());
 
-        helpMenu.setText(I18nManager.getString("menu.help"));
-        aboutMenuItem.setText(I18nManager.getString("menu.help.about"));
+    dashboardBtn.setText(I18nManager.getString("nav.dashboard"));
+    invoicesBtn.setText(I18nManager.getString("nav.invoices"));
+    accountingBtn.setText(I18nManager.getString("nav.accounting"));
+    settingsBtn.setText(I18nManager.getString("nav.settings"));
 
-        helpBtn.setText(I18nManager.getString("menu.help"));
-    }
+    helpMenu.setText(I18nManager.getString("menu.help"));
+    aboutMenuItem.setText(I18nManager.getString("menu.help.about"));
+
+    helpBtn.setText(I18nManager.getString("menu.help"));
+}
 }
