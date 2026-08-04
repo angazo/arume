@@ -65,7 +65,7 @@ public class ConfigManager {
             }
 
             return new ArumeConfig(
-                (String) arume.getOrDefault("country", "es"),
+                (String) arume.getOrDefault("country", "esp"),
                 (String) arume.getOrDefault("language", "en"),
                 (String) db.get("type"),
                 (boolean) db.getOrDefault("encrypt", false),

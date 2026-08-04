@@ -9,65 +9,72 @@ class CountryTest {
 
     @Test
     void fromCodeValidLowercase() {
-        assertEquals(Country.ES, Country.fromCode("es"));
-        assertEquals(Country.GB, Country.fromCode("gb"));
-        assertEquals(Country.CL, Country.fromCode("cl"));
-        assertEquals(Country.ZA, Country.fromCode("za"));
+        assertEquals(Country.ESP, Country.fromCode("esp"));
+        assertEquals(Country.GBR, Country.fromCode("gbr"));
+        assertEquals(Country.CHL, Country.fromCode("chl"));
+        assertEquals(Country.ZAF, Country.fromCode("zaf"));
     }
 
     @Test
     void fromCodeValidUppercaseIsNormalized() {
-        assertEquals(Country.US, Country.fromCode("US"));
-        assertEquals(Country.AU, Country.fromCode("AU"));
+        assertEquals(Country.USA, Country.fromCode("USA"));
+        assertEquals(Country.AUS, Country.fromCode("AUS"));
     }
 
     @Test
     void fromCodeUnknownFallsBackToSpain() {
-        assertEquals(Country.ES, Country.fromCode("xx"));
-        assertEquals(Country.ES, Country.fromCode("fr"));
+        assertEquals(Country.ESP, Country.fromCode("xxx"));
+        assertEquals(Country.ESP, Country.fromCode("fr"));
+    }
+
+    @Test
+    void fromCodeLegacyIso2NoLongerResolves() {
+        assertEquals(Country.ESP, Country.fromCode("gb"));
+        assertEquals(Country.ESP, Country.fromCode("us"));
+        assertEquals(Country.ESP, Country.fromCode("cl"));
     }
 
     @Test
     void fromCodeNullFallsBackToSpain() {
-        assertEquals(Country.ES, Country.fromCode(null));
+        assertEquals(Country.ESP, Country.fromCode(null));
     }
 
     @Test
     void detectDefaultReturnsSupportedCountry() {
-        assertEquals(Country.US, Country.detectDefault(Locale.US));
-        assertEquals(Country.CL, Country.detectDefault(new Locale("es", "CL")));
-        assertEquals(Country.GB, Country.detectDefault(new Locale("en", "GB")));
-        assertEquals(Country.AU, Country.detectDefault(new Locale("en", "AU")));
+        assertEquals(Country.USA, Country.detectDefault(Locale.US));
+        assertEquals(Country.CHL, Country.detectDefault(new Locale("es", "CL")));
+        assertEquals(Country.GBR, Country.detectDefault(new Locale("en", "GB")));
+        assertEquals(Country.AUS, Country.detectDefault(new Locale("en", "AU")));
     }
 
     @Test
     void detectDefaultFallsBackToSpainForUnsupported() {
-        assertEquals(Country.ES, Country.detectDefault(Locale.FRANCE));
-        assertEquals(Country.ES, Country.detectDefault(Locale.GERMANY));
+        assertEquals(Country.ESP, Country.detectDefault(Locale.FRANCE));
+        assertEquals(Country.ESP, Country.detectDefault(Locale.GERMANY));
     }
 
     @Test
     void detectDefaultFallsBackToSpainForBlankCountry() {
-        assertEquals(Country.ES, Country.detectDefault(new Locale("es")));
-        assertEquals(Country.ES, Country.detectDefault(Locale.ENGLISH));
+        assertEquals(Country.ESP, Country.detectDefault(new Locale("es")));
+        assertEquals(Country.ESP, Country.detectDefault(Locale.ENGLISH));
     }
 
     @Test
-    void getLabelKeyUsesLowercaseCode() {
-        assertEquals("wizard.country.es", Country.ES.getLabelKey());
-        assertEquals("wizard.country.za", Country.ZA.getLabelKey());
-        assertEquals("wizard.country.cl", Country.CL.getLabelKey());
+    void getLabelKeyUsesLowercaseAlpha3() {
+        assertEquals("wizard.country.esp", Country.ESP.getLabelKey());
+        assertEquals("wizard.country.zaf", Country.ZAF.getLabelKey());
+        assertEquals("wizard.country.chl", Country.CHL.getLabelKey());
     }
 
     @Test
     void officialLanguageMatchesExpected() {
-        assertEquals("es", Country.ES.officialLanguage());
-        assertEquals("es", Country.CL.officialLanguage());
-        assertEquals("en", Country.GB.officialLanguage());
-        assertEquals("en", Country.US.officialLanguage());
-        assertEquals("en", Country.SG.officialLanguage());
-        assertEquals("en", Country.AU.officialLanguage());
-        assertEquals("en", Country.ZA.officialLanguage());
+        assertEquals("es", Country.ESP.officialLanguage());
+        assertEquals("es", Country.CHL.officialLanguage());
+        assertEquals("en", Country.GBR.officialLanguage());
+        assertEquals("en", Country.USA.officialLanguage());
+        assertEquals("en", Country.SGP.officialLanguage());
+        assertEquals("en", Country.AUS.officialLanguage());
+        assertEquals("en", Country.ZAF.officialLanguage());
     }
 
     @Test
@@ -76,9 +83,9 @@ class CountryTest {
     }
 
     @Test
-    void codesAreLowercaseIso2() {
+    void codesAreLowercaseIso3() {
         for (var c : Country.values()) {
-            assertEquals(2, c.code().length());
+            assertEquals(3, c.code().length());
             assertEquals(c.code().toLowerCase(), c.code());
         }
     }

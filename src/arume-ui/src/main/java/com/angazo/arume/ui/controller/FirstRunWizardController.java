@@ -197,17 +197,13 @@ private void refreshTexts() {
     }
 
     countryLabel.setText(I18nManager.getString("wizard.country"));
-    var previousCountryLabel = countryCombo.getValue();
-    var previousCountry = resolveCountryCode(previousCountryLabel);
     var countryItems = countryCombo.getItems();
-    for (var i = 0; i < Country.values().length; i++) {
-        var label = I18nManager.getString(Country.values()[i].getLabelKey());
+    var countries = Country.values();
+    for (var i = 0; i < countries.length; i++) {
         if (i < countryItems.size()) {
-            countryItems.set(i, label);
+            countryItems.set(i, I18nManager.getString(countries[i].getLabelKey()));
         }
     }
-    var newCountryLabel = I18nManager.getString(Country.fromCode(previousCountry).getLabelKey());
-    countryCombo.getSelectionModel().select(newCountryLabel);
 
     languageLabel.setText(I18nManager.getString("wizard.language"));
     var items = languageCombo.getItems();
@@ -432,12 +428,12 @@ private static String resolveThemeId(String displayLabel) {
 }
 
 private static String resolveCountryCode(String displayLabel) {
-    if (displayLabel == null) return Country.ES.code();
+    if (displayLabel == null) return Country.ESP.code();
     for (var c : Country.values()) {
         if (I18nManager.getString(c.getLabelKey()).equals(displayLabel)) {
             return c.code();
         }
     }
-    return Country.ES.code();
+    return Country.ESP.code();
 }
 }
