@@ -41,23 +41,24 @@ The system SHALL allow changing the active language at runtime and SHALL notify 
 - **THEN** the callback SHALL be invoked on every subsequent language change
 
 ### Requirement: OS language detection
-The system SHALL detect the operating system locale to determine the default language on first run.
+The system SHALL detect the operating system locale to determine the default country on first run, and SHALL derive the default UI language from
+the official language of the detected country.
 
-#### Scenario: Spanish locale defaults to Spanish
-- **WHEN** the OS locale language is `es`
-- **THEN** `I18nManager.detectDefaultLanguage()` SHALL return `es`
+#### Scenario: Spanish-speaking supported country defaults to Spanish
+- **WHEN** the OS locale country resolves to `es` or `cl`
+- **THEN** `Country.detectDefault().officialLanguage()` SHALL return `"es"` and the wizard SHALL initialize `I18nManager` with Spanish
 
-#### Scenario: Co-official Spanish languages with country Spain default to Spanish
+#### Scenario: English-speaking supported country defaults to English
+- **WHEN** the OS locale country resolves to `gb`, `us`, `sg`, `au`, or `za`
+- **THEN** `Country.detectDefault().officialLanguage()` SHALL return `"en"` and the wizard SHALL initialize `I18nManager` with English
+
+#### Scenario: Unsupported country defaults to Spain and Spanish
+- **WHEN** the OS locale country does NOT match any supported country
+- **THEN** `Country.detectDefault()` SHALL return the `es` country and the wizard SHALL initialize `I18nManager` with Spanish
+
+#### Scenario: Co-official Spanish languages with country Spain still default to Spanish
 - **WHEN** the OS locale language is `ca`, `gl`, or `eu` AND the country is `ES`
-- **THEN** `I18nManager.detectDefaultLanguage()` SHALL return `es`
-
-#### Scenario: Unsupported locale defaults to English
-- **WHEN** the OS locale does not match any supported language (e.g., `fr`, `de`, `ja`)
-- **THEN** `I18nManager.detectDefaultLanguage()` SHALL return `en`
-
-#### Scenario: Co-official language outside Spain defaults to English
-- **WHEN** the OS locale language is `ca` AND the country is NOT `ES` (e.g., `AD`, `FR`)
-- **THEN** `I18nManager.detectDefaultLanguage()` SHALL return `en`
+- **THEN** `Country.detectDefault()` SHALL return `es` and the official-language default SHALL remain `"es"`
 
 ### Requirement: Resource bundle files
 The system SHALL provide resource bundle files for each supported language.
@@ -75,7 +76,8 @@ The system SHALL provide resource bundle files for each supported language.
 - **THEN** every key present in the English bundle SHALL also exist in the Spanish bundle
 
 ### Requirement: Language persistence in arume.yml
-The system SHALL persist the user's language choice in the `arume.yml` configuration file under the key `arume.language`.
+The system SHALL persist the user's language choice in the `arume.yml` configuration file under the key `arume.language`, and updates to other
+keys (theme, country) SHALL NOT alter the persisted language value.
 
 #### Scenario: Language is saved with configuration
 - **WHEN** the user completes the first-run wizard with language set to Spanish
@@ -87,31 +89,28 @@ The system SHALL persist the user's language choice in the `arume.yml` configura
 
 #### Scenario: Language can be updated in-app
 - **WHEN** the user changes language from the title bar button
-- **THEN** `arume.yml` SHALL be updated with the new `arume.language` value
+- **THEN** `arume.yml` SHALL be updated with the new `arume.language` value and other persisted keys (theme, country) SHALL remain unchanged
 
 ### Requirement: Language change from main application window
-The system SHALL provide a language selector button in the custom title bar allowing the user to toggle between English and Spanish.
+The system SHALL provide a language selector button in the custom title bar allowing the user to toggle between English and Spanish, displaying the
+name of the currently active language as its label.
 
 #### Scenario: Language button is present in title bar
 - **WHEN** the main application window is displayed
-- **THEN** a language button with a flag icon SHALL appear in the custom title bar, positioned before the theme button
+- **THEN** a language selector button SHALL appear in the custom title bar, positioned between the country flag indicator and the theme button
 
-#### Scenario: Language button shows flag for current language
-- **WHEN** the main window is displayed with English active
-- **THEN** the language button SHALL display a flag icon representing English (e.g., US/UK flag FontIcon)
+#### Scenario: Language button shows the name of the active language
+- **WHEN** the main window is displayed with Spanish active
+- **THEN** the language button SHALL display the text "Español" (and no flag icon)
 
 #### Scenario: Language button toggles between English and Spanish
 - **WHEN** the user clicks the language button while Spanish is active
-- **THEN** the language SHALL change to English, the button icon SHALL update to the English flag, and all UI text SHALL update
+- **THEN** the language SHALL change to English, the button text SHALL update to "English", and all UI text SHALL update accordingly
 
 #### Scenario: Language button toggles from English to Spanish
 - **WHEN** the user clicks the language button while English is active
-- **THEN** the language SHALL change to Spanish, the button icon SHALL update to the Spanish flag, and all UI text SHALL update
+- **THEN** the language SHALL change to Spanish, the button text SHALL update to "Español", and all UI text SHALL update accordingly
 
-#### Scenario: Language change from button updates the UI
-- **WHEN** the user changes language via the title bar button
-- **THEN** all UI text in the main window (including title bar, sidebars, and status bar) SHALL update to reflect the new language
-
-#### Scenario: Language change from button persists to config
-- **WHEN** the user changes language via the title bar button
-- **THEN** the `arume.yml` configuration file SHALL be updated with the new `arume.language` value
+#### Scenario: Language button label refreshes on language change
+- **WHEN** the language is changed from any source (e.g., wizard, code)
+- **THEN** the language button text SHALL be re-set to the name of the now-active language
