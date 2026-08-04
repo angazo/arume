@@ -52,7 +52,7 @@ Paquete base: com.angazo.arume
 ## Estado actual
 
 - **Fase actual:** Fase 0 — configuración en el arranque
-- **Último hito:** Selección de país en el setup inicial (issue #21): combo de país (order País → Idioma → Tema, 7 países soportados via enum `Country` con idioma oficial asociado, persistencia `arume.country` ISO-2, default por `Locale`), bandera del país (PNG no interactivo + tooltip i18n) en la barra superior, botón de idioma en texto (sin bandera), `ArumeConfig`/`WizardResult`/`ConfigManager` propagan `country` (compat hacia atrás con default `es`). Specs `country-selection` (nueva) + `first-run-wizard`, `internationalization`, `ide-window-chrome` (modificadas).
+- **Último hito:** Catálogos de países y divisas en BBDD (issue #26): migración `V0.1.0.1` crea `t1_countries`, `t2_currencies` y `t3_country_currency` (N:M) con seed de 7 países, 8 divisas (Chile con CLP y CLF) y 8 asociaciones, y el identificador de país pasa de ISO-2 a ISO-3 en todo el producto (enum `Country` con campo auxiliar alpha-2 para detección por locale, `arume.country`, PNGs de banderas y claves i18n). **Rupturista**: sin compatibilidad con `arume.yml` ISO-2 (regenerar). Fix del combo de país del wizard (perdía la selección al cambiar de idioma). Specs `country-currency-catalog` (nueva) + `country-selection` (modificada).
 - **Próximo hito:** Por definir
 
 ## Convenciones de código
@@ -65,11 +65,12 @@ Paquete base: com.angazo.arume
 - **Migraciones**: Flyway Community, scripts SQL versionados en `arume-app/src/main/resources/db/migration/`
 - **Ventanas modales**: todas usan `StageStyle.UNDECORATED` con barra de título custom (`.title-bar`, 40px) y botón de cierre. Consistencia visual con la ventana principal.
 - **Iconos**: Ikonli (`ikonli-javafx:12.3.1`) con packs FontAwesome5 y MaterialDesign2. Usar `FontIcon` para todos los iconos de la UI.
-  - **Banderas de países**: Ikonli no cubre banderas por país. Se usan PNGs 32×20 en `arume-ui/src/main/resources/icons/flags/<iso2>.png`
-    (ISO-2 minúsculas), cargados vía `ImageView`. Enum `Country` expone el catálogo soportado y su idioma oficial asociado.
-- **País vs idioma**: conceptos desacoplados. El país se elige una vez en el wizard (`arume.country` ISO-2 en `arume.yml`, no editable tras setup).
+  - **Banderas de países**: Ikonli no cubre banderas por país. Se usan PNGs 32×20 en `arume-ui/src/main/resources/icons/flags/<iso3>.png`
+    (ISO-3 minúsculas), cargados vía `ImageView`. Enum `Country` expone el catálogo soportado y su idioma oficial asociado.
+- **País vs idioma**: conceptos desacoplados. El país se elige una vez en el wizard (`arume.country` ISO-3 minúsculas en `arume.yml`, no editable tras setup).
   El idioma de la UI es conmutable en cualquier momento (`arume.language`). El botón de idioma en la barra superior muestra el nombre del
   idioma activo en texto (sin bandera); la bandera del país va en un `ImageView` no interactivo con tooltip i18n.
+- **Códigos de país (ISO 3166-1)**: dos representaciones conviven a propósito — en la **BBDD** el alpha-3 va en **mayúsculas** (canónico, `ESP`); en la **capa de aplicación** (enum `Country`, `arume.yml`, PNGs, claves i18n) va en **minúsculas** (`esp`). `Country.fromCode` normaliza a minúsculas al resolver. El enum guarda además el alpha-2 auxiliar (campo `alpha2`) solo para la detección por locale del SO (`Locale.getCountry()` devuelve ISO-2).
 - **CSS**: `arume.css` en `src/arume-ui/src/main/resources/css/` extiende AtlantaFX con variables de acento verde. Cargar vía `scene.getStylesheets().add()`.
 - **Temas**: solo Claro (PrimerLight) y Oscuro (Dracula). Paleta de acentos verde (`-color-accent-*`) overrida en `.root` de `arume.css`.
 - **Nombrado de objetos de BBDD**: todo en minúsculas y en inglés, palabras separadas por guiones bajos. Cada tabla se prefija con `t<n>_` donde `n` es un identificador numérico incremental (0, 1, 2…):
@@ -78,6 +79,8 @@ Paquete base: com.angazo.arume
   - FK: `fk_t<origen>_t<destino>` (ej. `fk_t2_t1`). Si hay varias entre las mismas tablas: `fk_t2_t1_1`, `fk_t2_t1_2`
   - UK: `uk_t<n>_<descripción>` (ej. `uk_t0_key`). Si hay varias: `uk_t0_key_1`, `uk_t0_key_2`
   - Índices: `ix_t<n>_<descripción>` (ej. `ix_t1_date`). Si hay varios: `ix_t1_date_1`
+- **Columnas de catálogos ISO**: códigos numéricos (país/divisa) como `SMALLINT` (rango 0–999, SQL estándar) y PK; alpha-3 como `VARCHAR(3)` en **mayúsculas** con UK; nombres en inglés como `VARCHAR(100)`; símbolo de divisa como `VARCHAR(8)`.
+- **Migraciones con datos**: el seed de catálogos va en la misma migración que crea las tablas; los tests de migración se ubican en `arume-app/src/test/` y ejecutan Flyway contra H2 en memoria (`MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE`).
 - **Idioma**: código fuente en inglés (nombres de clases, métodos, variables, comentarios y logs) para facilitar la participación de la comunidad. Documentación del proyecto (AGENTS.md, Product-Spec.md, openspec/) en español
 - **Commits**: mensajes de commit en inglés, siguiendo conventional commits (feat:, fix:, docs:, etc.)
 - **Paquete base**: `com.angazo.arume`

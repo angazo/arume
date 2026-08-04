@@ -33,5 +33,5 @@
 
 ## 7. Verificación final
 
-- [ ] 7.1 Ejecutar `./gradlew build` y confirmar que compila y todos los tests pasan
-- [ ] 7.2 Arrancar la aplicación (`./gradlew bootRun`), borrar previamente el `arume.yml` local, completar el wizard y comprobar: país persistido en ISO-3, bandera correcta en la barra de título y migración aplicada en el log de Flyway
+- [x] 7.1 Ejecutar `./gradlew build` y confirmar que compila y todos los tests pasan
+- [x] 7.2 Arrancar la aplicación (`./gradlew bootRun`), borrar previamente el `arume.yml` local, completar el wizard y comprobar: país persistido en ISO-3, bandera correcta en la barra de título y migración aplicada en el log de Flyway
