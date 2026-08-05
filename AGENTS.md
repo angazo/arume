@@ -52,10 +52,7 @@ Paquete base: com.angazo.arume
 ## Estado actual
 
 - **Fase actual:** Fase 0 — configuración en el arranque
-- **Último hito:** Banderas nítidas en alta DPI (issue #24): los PNGs de bandera 32×20 pasan a PNGs 3× de 96×72 rasterizados con
-  `rsvg-convert` desde los SVGs de flag-icons (set 4×3 apaisado, licencia MIT) alojados en `docs/banderas/` (gitignored), y el `ImageView`
-  de la barra superior pasa a fit 32×24 (proporción apaisada natural). Sin dependencias nuevas ni lógica de DPI (el downsampling de JavaFX
-  cubre 1×/2×/3×). Tests de dimensión y aspecto 4:3. Spec `country-selection` (modificada).
+- **Último hito:** Entidades y mappers MyBatis con el generador automático (issue #28): tarea `mbGenerator` propia que sustituye al plugin qqviaja (roto en Gradle 9), aplica `Flyway.migrate()` a una BBDD H2 en memoria (`jdbc:h2:mem:mbgen`) y ejecuta MyBatis Generator; migraciones movidas a `arume-db/src/main/resources/db/migration/`; conexión del generador definida en `build.gradle` e inyectada en `MyBatis/mbg.xml` como `${mbgen.*}`; código generado para los catálogos (`t1_countries`, `t2_currencies`, `t3_country_currency`). Spec `mbg-code-generation` (nueva).
 - **Próximo hito:** Por definir
 
 ## Convenciones de código
