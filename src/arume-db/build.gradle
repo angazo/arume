@@ -1,6 +1,5 @@
 plugins {
     alias(libs.plugins.lombok.freefair)
-    alias(libs.plugins.mybatis.generator)
 }
 
 dependencies {
@@ -22,4 +21,32 @@ dependencies {
 
     // Flyway
     implementation(libs.flyway.core)
+}
+
+//
+// MyBatis Generator task.
+//
+// The com.qqviaja.gradle.MybatisGenerator plugin (v2.5) relies on Gradle's
+// internal IsolatedAntBuilder, which broke on Gradle 9 (ant taskdef cannot
+// find GeneratorAntTask). We run MyBatis Generator programmatically instead,
+// in a forked JVM so that the JDBC connection MBG never closes cannot lock a
+// long-lived Gradle daemon. The generator works against a fresh in-memory
+// database that the task migrates with Flyway right before generation, so the
+// generated code always matches the project's migrations.
+//
+
+def mbgenUrl = 'jdbc:h2:mem:mbgen;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1'
+def mbgenUser = 'mybatis'
+def mbgenPassword = 'mybatis'
+
+tasks.register('mbGenerator', JavaExec) {
+    group = 'Util'
+    description = 'Migrates an in-memory H2 database and runs MyBatis Generator against it'
+    inputs.file('MyBatis/mbg.xml')
+    inputs.files(fileTree('src/main/resources/db/migration'))
+
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.angazo.arume.db.generator.MbGeneratorMain'
+    args file('MyBatis/mbg.xml').absolutePath, projectDir.toString(),
+            mbgenUrl, mbgenUser, mbgenPassword
 }
