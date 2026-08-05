@@ -25,8 +25,8 @@ Crear una aplicación que permita a un particular o empresa llevar su facturaci�
 
 ```
 src/
-├── arume-app/    → Punto de entrada Spring Boot, configuración, migraciones Flyway
-├── arume-db/     → Capa de datos: mappers MyBatis, entidades, repositorios
+├── arume-app/    → Punto de entrada Spring Boot, configuración
+├── arume-db/     → Capa de datos: mappers MyBatis, entidades, repositorios, migraciones Flyway
 └── arume-ui/     → Interfaz JavaFX (controladores, vistas FXML, recursos)
 
 Paquete base: com.angazo.arume
@@ -36,8 +36,8 @@ Paquete base: com.angazo.arume
 
 | Módulo | Responsabilidad |
 |---|---|
-| `arume-app` | Arranque de la aplicación (`ArumeApp`), configuración Spring Boot, recursos (`application.yml`, migraciones Flyway en `db/migration/`) |
-| `arume-db` | Acceso a datos: mappers MyBatis, entidades, configuración de base de datos |
+| `arume-app` | Arranque de la aplicación (`ArumeApp`), configuración Spring Boot, recursos (`application.yml`) |
+| `arume-db` | Acceso a datos: mappers MyBatis, entidades, configuración de base de datos, migraciones Flyway en `db/migration/` |
 | `arume-ui` | Interfaz de usuario JavaFX: controladores, vistas FXML, tema AtlantaFX |
 
 ## Comandos de uso frecuente
@@ -65,7 +65,8 @@ Paquete base: com.angazo.arume
 - **UI JavaFX**: vistas definidas en FXML, controladores Java como `@Controller` de Spring
 - **Arranque híbrido**: `ArumeAppFX.launch()` levanta JavaFX, que a su vez arranca Spring Boot vía `SpringApplication.run()`
 - **Base de datos**: H2 en modo PostgreSQL (`MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1`); en desarrollo se usa `jdbc:h2:mem:arume`
-- **Migraciones**: Flyway Community, scripts SQL versionados en `arume-app/src/main/resources/db/migration/`
+- **Migraciones**: Flyway Community, scripts SQL versionados en `arume-db/src/main/resources/db/migration/`
+- **Generador MyBatis (tarea `mbGenerator`)**: la tarea de `arume-db` corre en un JVM forkeado (`JavaExec`) y ejecuta `com.angazo.arume.db.generator.MbGeneratorMain`, que primero aplica `Flyway.migrate()` a una BBDD H2 en memoria (`jdbc:h2:mem:mbgen;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1`) y después MyBatis Generator, de modo que el código generado refleja siempre las migraciones. La conexión se define una sola vez en `arume-db/build.gradle` y se inyecta en `MyBatis/mbg.xml` como `${mbgen.url}` / `${mbgen.user}` / `${mbgen.password}` (además de `${projectDir}`). Código generado: entidades en `com.angazo.arume.db.model`, repositorios en `com.angazo.arume.db.repository.generated` y mappers XML en `src/main/resources/mappers/`.
 - **Ventanas modales**: todas usan `StageStyle.UNDECORATED` con barra de título custom (`.title-bar`, 40px) y botón de cierre. Consistencia visual con la ventana principal.
 - **Iconos**: Ikonli (`ikonli-javafx:12.3.1`) con packs FontAwesome5 y MaterialDesign2. Usar `FontIcon` para todos los iconos de la UI.
   - **Banderas de países**: Ikonli no cubre banderas por país. Se usan PNGs de 96×72 (3× del tamaño de visualización 32×24) en
@@ -100,7 +101,7 @@ Paquete base: com.angazo.arume
 | `openspec/changes/` | Changes activos y archivados |
 | `openspec/config.yaml` | Configuración de OpenSpec |
 | `src/arume-app/src/main/resources/application.yml` | Configuración Spring Boot |
-| `src/arume-app/src/main/resources/db/migration/` | Migraciones Flyway |
+| `src/arume-db/src/main/resources/db/migration/` | Migraciones Flyway |
 | `src/build.gradle` | Configuración raíz de Gradle (subproyectos, Java 25, JUnit) |
 
 ## Hoja de ruta (fases)

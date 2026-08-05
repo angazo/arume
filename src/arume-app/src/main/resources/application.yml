@@ -9,3 +9,11 @@ spring:
   h2:
     console:
       enabled: true
+
+# MyBatis config
+mybatis:
+  mapper-locations: classpath:mappers/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+    default-fetch-size: 100
+    default-statement-timeout: 5
