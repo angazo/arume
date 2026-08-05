@@ -52,7 +52,10 @@ Paquete base: com.angazo.arume
 ## Estado actual
 
 - **Fase actual:** Fase 0 — configuración en el arranque
-- **Último hito:** Catálogos de países y divisas en BBDD (issue #26): migración `V0.1.0.1` crea `t1_countries`, `t2_currencies` y `t3_country_currency` (N:M) con seed de 7 países, 8 divisas (Chile con CLP y CLF) y 8 asociaciones, y el identificador de país pasa de ISO-2 a ISO-3 en todo el producto (enum `Country` con campo auxiliar alpha-2 para detección por locale, `arume.country`, PNGs de banderas y claves i18n). **Rupturista**: sin compatibilidad con `arume.yml` ISO-2 (regenerar). Fix del combo de país del wizard (perdía la selección al cambiar de idioma). Specs `country-currency-catalog` (nueva) + `country-selection` (modificada).
+- **Último hito:** Banderas nítidas en alta DPI (issue #24): los PNGs de bandera 32×20 pasan a PNGs 3× de 96×72 rasterizados con
+  `rsvg-convert` desde los SVGs de flag-icons (set 4×3 apaisado, licencia MIT) alojados en `docs/banderas/` (gitignored), y el `ImageView`
+  de la barra superior pasa a fit 32×24 (proporción apaisada natural). Sin dependencias nuevas ni lógica de DPI (el downsampling de JavaFX
+  cubre 1×/2×/3×). Tests de dimensión y aspecto 4:3. Spec `country-selection` (modificada).
 - **Próximo hito:** Por definir
 
 ## Convenciones de código

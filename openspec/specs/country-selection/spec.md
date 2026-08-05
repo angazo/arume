@@ -105,11 +105,12 @@ Legacy ISO-2 values are NOT supported: an unrecognized value SHALL fall back to 
 
 ### Requirement: Country flag indicator in main window title bar
 The main application window SHALL display a non-interactive flag image of the country chosen at setup, positioned in the title bar to the
-left of the language selector button, with an internationalized tooltip.
+left of the language selector button, with an internationalized tooltip. The flag SHALL be served as a high-resolution PNG (3× the display
+size) with landscape 4:3 proportions, so it renders sharply on HiDPI (2×/3×) displays while its logical display size stays at 32×24 px.
 
 #### Scenario: Flag indicator is visible
 - **WHEN** the main window is displayed with country `Chile` configured
-- **THEN** a 32×20 pixel PNG image of the flag of Chile SHALL be visible in the title bar before the language button
+- **THEN** a flag image of Chile SHALL be visible in the title bar before the language button with a logical size of 32×24 px
 
 #### Scenario: Flag indicator is non-interactive
 - **WHEN** the user clicks on the country flag indicator
@@ -125,11 +126,17 @@ left of the language selector button, with an internationalized tooltip.
 
 #### Scenario: Flag indicator reflects loaded country
 - **WHEN** the application starts with `arume.country: aus`
-- **THEN** the flag indicator SHALL display the flag PNG of Australia
+- **THEN** the flag indicator SHALL display the flag of Australia
+
+#### Scenario: Flag indicator is crisp at high device pixel scale
+- **WHEN** the application is displayed on a monitor whose device pixel scale is `2.0`
+- **THEN** the flag of the configured country SHALL be displayed from the high-resolution (96×72) PNG asset while keeping the 32×24
+  logical size, so it renders sharply
 
 ### Requirement: Country flags PNG assets
-The system SHALL ship a PNG file per supported country at `arume-ui/src/main/resources/icons/flags/<code>.png`, with `<code>` the lowercase
-ISO 3166-1 alpha-3 code.
+The system SHALL ship a high-resolution PNG file per supported country at `arume-ui/src/main/resources/icons/flags/<code>.png`, with
+`<code>` the lowercase ISO 3166-1 alpha-3 code, rasterized at 3× the display size (96×72 px) with landscape 4:3 proportions from the
+`flag-icons` SVG set (MIT license).
 
 #### Scenario: PNG exists for every supported country
 - **WHEN** the resource bundle of `arume-ui` is inspected
@@ -137,4 +144,8 @@ ISO 3166-1 alpha-3 code.
 
 #### Scenario: PNG dimensions
 - **WHEN** a flag PNG is loaded
-- **THEN** its dimensions SHALL be 32 pixels wide by 20 pixels tall (the source; the `ImageView` SHALL preserve ratio when resized)
+- **THEN** its dimensions SHALL be 96 pixels wide by 72 pixels tall (3× the 32×24 logical display size)
+
+#### Scenario: PNG aspect ratio matches the ImageView
+- **WHEN** the aspect ratio of a flag PNG is computed
+- **THEN** it SHALL be 4:3, equal to the 32×24 display size, so `preserveRatio` introduces no distortion
