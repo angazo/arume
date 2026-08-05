@@ -35,7 +35,7 @@
                 </items>
             </MenuButton>
             <Region HBox.hgrow="ALWAYS"/>
-            <ImageView fx:id="countryFlag" fitWidth="32" fitHeight="20" preserveRatio="true">
+            <ImageView fx:id="countryFlag" fitWidth="32" fitHeight="24" preserveRatio="true">
                 <HBox.margin>
                     <Insets right="6"/>
                 </HBox.margin>
