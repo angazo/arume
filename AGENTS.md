@@ -65,8 +65,11 @@ Paquete base: com.angazo.arume
 - **Migraciones**: Flyway Community, scripts SQL versionados en `arume-app/src/main/resources/db/migration/`
 - **Ventanas modales**: todas usan `StageStyle.UNDECORATED` con barra de título custom (`.title-bar`, 40px) y botón de cierre. Consistencia visual con la ventana principal.
 - **Iconos**: Ikonli (`ikonli-javafx:12.3.1`) con packs FontAwesome5 y MaterialDesign2. Usar `FontIcon` para todos los iconos de la UI.
-  - **Banderas de países**: Ikonli no cubre banderas por país. Se usan PNGs 32×20 en `arume-ui/src/main/resources/icons/flags/<iso3>.png`
-    (ISO-3 minúsculas), cargados vía `ImageView`. Enum `Country` expone el catálogo soportado y su idioma oficial asociado.
+  - **Banderas de países**: Ikonli no cubre banderas por país. Se usan PNGs de 96×72 (3× del tamaño de visualización 32×24) en
+    `arume-ui/src/main/resources/icons/flags/<iso3>.png` (ISO-3 minúsculas), cargados vía `ImageView` con fit 32×24; el downsampling de
+    JavaFX mantiene la nitidez en pantallas HiDPI 1×/2×/3× sin lógica de DPI. Los PNGs se generan desde los SVGs de flag-icons
+    (licencia MIT, set 4×3 apaisado) alojados en `docs/banderas/` (nombrados por ISO-2, p. ej. `es.svg`). **Regeneración**: `rsvg-convert -w 96 -h 72 -o <iso3>.png <iso2>.svg`
+    (p. ej. `rsvg-convert -w 96 -h 72 -o esp.png es.svg`). Enum `Country` expone el catálogo soportado y su idioma oficial asociado.
 - **País vs idioma**: conceptos desacoplados. El país se elige una vez en el wizard (`arume.country` ISO-3 minúsculas en `arume.yml`, no editable tras setup).
   El idioma de la UI es conmutable en cualquier momento (`arume.language`). El botón de idioma en la barra superior muestra el nombre del
   idioma activo en texto (sin bandera); la bandera del país va en un `ImageView` no interactivo con tooltip i18n.

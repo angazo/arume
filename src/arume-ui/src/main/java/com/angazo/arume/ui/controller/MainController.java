@@ -356,7 +356,7 @@ private void setupCountryFlag() {
     countryFlag.setImage(flagImage);
     countryFlag.setMouseTransparent(true);
     countryFlag.setFitWidth(32);
-    countryFlag.setFitHeight(20);
+    countryFlag.setFitHeight(24);
     countryFlag.setPreserveRatio(true);
     countryFlagTooltip = new Tooltip();
     Tooltip.install(countryFlag, countryFlagTooltip);
