@@ -2,7 +2,6 @@ package com.angazo.arume.ui.controller;
 
 import java.io.File;
 
-import com.angazo.arume.ui.config.Country;
 import com.angazo.arume.ui.config.ThemeConfig;
 import com.angazo.arume.ui.i18n.I18nManager;
 import javafx.collections.FXCollections;
@@ -26,12 +25,6 @@ import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
 
 public class FirstRunWizardController {
-
-    @FXML
-    private ComboBox<String> countryCombo;
-
-    @FXML
-    private Label countryLabel;
 
     @FXML
     private ComboBox<String> languageCombo;
@@ -137,25 +130,15 @@ public class FirstRunWizardController {
         dbTypeCombo.setItems(dbTypes);
         dbTypeCombo.getSelectionModel().selectFirst();
 
-        var countries = FXCollections.<String>observableArrayList();
-        for (var c : Country.values()) {
-            countries.add(I18nManager.getString(c.getLabelKey()));
-        }
-        countryCombo.setItems(countries);
-
-        var defaultCountry = Country.detectDefault();
-        var defaultCountryLabel = I18nManager.getString(defaultCountry.getLabelKey());
-        countryCombo.getSelectionModel().select(defaultCountryLabel);
-
         var languages = FXCollections.observableArrayList(
             I18nManager.getString("wizard.lang.en"),
             I18nManager.getString("wizard.lang.es")
         );
         languageCombo.setItems(languages);
 
-        var languageForCountry = defaultCountry.officialLanguage();
-        var languageLabelForDefault = I18nManager.getString("wizard.lang." + languageForCountry);
-        languageCombo.getSelectionModel().select(languageLabelForDefault);
+        var defaultLanguage = I18nManager.detectDefaultLanguage();
+        var defaultLanguageLabel = I18nManager.getString("wizard.lang." + defaultLanguage);
+        languageCombo.getSelectionModel().select(defaultLanguageLabel);
 
         languageCombo.valueProperty().addListener((obs, old, newVal) -> {
             if (newVal == null) return;
@@ -194,15 +177,6 @@ private void refreshTexts() {
     if (stageScene != null) {
         var stage = (Stage) stageScene.getWindow();
         stage.setTitle(I18nManager.getString("wizard.title"));
-    }
-
-    countryLabel.setText(I18nManager.getString("wizard.country"));
-    var countryItems = countryCombo.getItems();
-    var countries = Country.values();
-    for (var i = 0; i < countries.length; i++) {
-        if (i < countryItems.size()) {
-            countryItems.set(i, I18nManager.getString(countries[i].getLabelKey()));
-        }
     }
 
     languageLabel.setText(I18nManager.getString("wizard.language"));
@@ -321,9 +295,7 @@ public void onSave() {
         return;
     }
     var themeId = resolveThemeId(themeCombo.getValue());
-    var countryCode = resolveCountryCode(countryCombo.getValue());
     result = new WizardResult(
-        countryCode,
         I18nManager.getCurrentLanguage(),
         "h2",
         storagePathField.getText().trim(),
@@ -425,15 +397,5 @@ private static String resolveThemeId(String displayLabel) {
         }
     }
     return "light";
-}
-
-private static String resolveCountryCode(String displayLabel) {
-    if (displayLabel == null) return Country.ESP.code();
-    for (var c : Country.values()) {
-        if (I18nManager.getString(c.getLabelKey()).equals(displayLabel)) {
-            return c.code();
-        }
-    }
-    return Country.ESP.code();
 }
 }

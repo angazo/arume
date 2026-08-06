@@ -1,7 +1,6 @@
 package com.angazo.arume.ui.controller;
 
 public record WizardResult(
-    String country,
     String language,
     String dbType,
     String storagePath,

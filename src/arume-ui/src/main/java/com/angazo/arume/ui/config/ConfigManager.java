@@ -65,7 +65,6 @@ public class ConfigManager {
             }
 
             return new ArumeConfig(
-                (String) arume.getOrDefault("country", "esp"),
                 (String) arume.getOrDefault("language", "en"),
                 (String) db.get("type"),
                 (boolean) db.getOrDefault("encrypt", false),
@@ -84,7 +83,6 @@ public class ConfigManager {
         db.put("encrypt", config.encrypt());
 
         var arume = new LinkedHashMap<String, Object>();
-        arume.put("country", config.country());
         arume.put("language", config.language());
         arume.put("theme", config.theme());
         arume.put("db", db);
@@ -126,7 +124,6 @@ public class ConfigManager {
     public void updateLanguage(String language) {
         var config = load();
         var updated = new ArumeConfig(
-            config.country(),
             language,
             config.dbType(),
             config.encrypt(),
@@ -141,7 +138,6 @@ public class ConfigManager {
     public void updateTheme(String theme) {
         var config = load();
         var updated = new ArumeConfig(
-            config.country(),
             config.language(),
             config.dbType(),
             config.encrypt(),

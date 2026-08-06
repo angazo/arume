@@ -12,7 +12,6 @@ import javafx.scene.control.MenuButton;
 import javafx.scene.control.MenuItem;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
-import javafx.scene.control.Tooltip;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseButton;
@@ -41,7 +40,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.angazo.arume.ui.config.ConfigManager;
-import com.angazo.arume.ui.config.Country;
 import com.angazo.arume.ui.config.ThemeConfig;
 import com.angazo.arume.ui.i18n.I18nManager;
 
@@ -59,8 +57,6 @@ public class MainController {
 @FXML private Button languageBtn;
 
 @FXML private Button themeBtn;
-
-@FXML private ImageView countryFlag;
 
 @FXML private Button minimizeBtn;
 
@@ -122,7 +118,6 @@ public void initialize() {
     setupIcons();
     setupNavigation();
     setupStatusBar();
-    setupCountryFlag();
 
     dashboardBtn.setSelected(true);
 
@@ -248,9 +243,7 @@ minimizeBtn.setGraphic(FontIcon.of(MaterialDesignW.WINDOW_MINIMIZE, size));
 
     private void setupStatusBar() {
         checkDbStatus();
-    }
-
-    private void checkDbStatus() {
+    }    private void checkDbStatus() {
         if (dataSource != null) {
             try (var conn = dataSource.getConnection()) {
                 var valid = conn.isValid(2);
@@ -341,36 +334,6 @@ minimizeBtn.setGraphic(FontIcon.of(MaterialDesignW.WINDOW_MINIMIZE, size));
         showAboutDialog();
     }
 
-private static Country loadConfiguredCountry() {
-    var cm = new ConfigManager();
-    var config = cm.load();
-    return Country.fromCode(config.country());
-}
-
-private Tooltip countryFlagTooltip;
-
-private void setupCountryFlag() {
-    var country = loadConfiguredCountry();
-    var flagPath = "/icons/flags/" + country.code() + ".png";
-    var flagImage = new Image(getClass().getResourceAsStream(flagPath));
-    countryFlag.setImage(flagImage);
-    countryFlag.setMouseTransparent(true);
-    countryFlag.setFitWidth(32);
-    countryFlag.setFitHeight(24);
-    countryFlag.setPreserveRatio(true);
-    countryFlagTooltip = new Tooltip();
-    Tooltip.install(countryFlag, countryFlagTooltip);
-    updateCountryFlagTooltip(country);
-}
-
-private void updateCountryFlagTooltip(Country country) {
-    if (countryFlagTooltip == null) return;
-    var countryName = I18nManager.getString(country.getLabelKey());
-    var pattern = I18nManager.getString("main.country.tooltip");
-    var text = java.text.MessageFormat.format(pattern, countryName);
-    countryFlagTooltip.setText(text);
-}
-
 @FXML
 public void onLanguageToggle() {
     var current = I18nManager.getCurrentLanguage();
@@ -398,7 +361,6 @@ public void onLanguageToggle() {
 private void onLanguageChanged() {
     refreshTexts();
     selectLanguageText();
-    updateCountryFlagTooltip(loadConfiguredCountry());
 }
 
 private void selectLanguageText() {
@@ -419,8 +381,6 @@ private void selectLanguageText() {
 private void refreshTexts() {
     selectLanguageText();
     selectCurrentThemeIcon();
-
-    updateCountryFlagTooltip(loadConfiguredCountry());
 
     dashboardBtn.setText(I18nManager.getString("nav.dashboard"));
     invoicesBtn.setText(I18nManager.getString("nav.invoices"));
