@@ -52,7 +52,12 @@ Paquete base: com.angazo.arume
 ## Estado actual
 
 - **Fase actual:** Fase 0 — configuración en el arranque
-- **Último hito:** Entidades y mappers MyBatis con el generador automático (issue #28): tarea `mbGenerator` propia que sustituye al plugin qqviaja (roto en Gradle 9), aplica `Flyway.migrate()` a una BBDD H2 en memoria (`jdbc:h2:mem:mbgen`) y ejecuta MyBatis Generator; migraciones movidas a `arume-db/src/main/resources/db/migration/`; conexión del generador definida en `build.gradle` e inyectada en `MyBatis/mbg.xml` como `${mbgen.*}`; código generado para los catálogos (`t1_countries`, `t2_currencies`, `t3_country_currency`). Spec `mbg-code-generation` (nueva).
+- **Último hito:** El país pasa a ser un dato de la empresa (issue #23): eliminada la selección de país del arranque — combo del wizard, bandera de
+  la barra superior y `arume.country` (campo `country` de `ArumeConfig`/`WizardResult`); eliminado el enum `Country` de `arume-ui` (el catálogo
+  canónico queda en `t1_countries`); el idioma por defecto del wizard vuelve a derivar del OS (`I18nManager.detectDefaultLanguage()`); PNGs de
+  banderas conservados como recursos inertes en `resources/icons/flags/` y protegidos por `FlagResourcesTest` (96×72, 4:3); carga tolerante de
+  `arume.yml` legacy con `arume.country` (la clave se ignora y se limpia al guardar). Capabilities: `country-selection` (eliminada),
+  `first-run-wizard`, `ide-window-chrome`, `internationalization`.
 - **Próximo hito:** Por definir
 
 ## Convenciones de código
@@ -70,11 +75,14 @@ Paquete base: com.angazo.arume
     `arume-ui/src/main/resources/icons/flags/<iso3>.png` (ISO-3 minúsculas), cargados vía `ImageView` con fit 32×24; el downsampling de
     JavaFX mantiene la nitidez en pantallas HiDPI 1×/2×/3× sin lógica de DPI. Los PNGs se generan desde los SVGs de flag-icons
     (licencia MIT, set 4×3 apaisado) alojados en `docs/banderas/` (nombrados por ISO-2, p. ej. `es.svg`). **Regeneración**: `rsvg-convert -w 96 -h 72 -o <iso3>.png <iso2>.svg`
-    (p. ej. `rsvg-convert -w 96 -h 72 -o esp.png es.svg`). Enum `Country` expone el catálogo soportado y su idioma oficial asociado.
-- **País vs idioma**: conceptos desacoplados. El país se elige una vez en el wizard (`arume.country` ISO-3 minúsculas en `arume.yml`, no editable tras setup).
-  El idioma de la UI es conmutable en cualquier momento (`arume.language`). El botón de idioma en la barra superior muestra el nombre del
-  idioma activo en texto (sin bandera); la bandera del país va en un `ImageView` no interactivo con tooltip i18n.
-- **Códigos de país (ISO 3166-1)**: dos representaciones conviven a propósito — en la **BBDD** el alpha-3 va en **mayúsculas** (canónico, `ESP`); en la **capa de aplicación** (enum `Country`, `arume.yml`, PNGs, claves i18n) va en **minúsculas** (`esp`). `Country.fromCode` normaliza a minúsculas al resolver. El enum guarda además el alpha-2 auxiliar (campo `alpha2`) solo para la detección por locale del SO (`Locale.getCountry()` devuelve ISO-2).
+    (p. ej. `rsvg-convert -w 96 -h 72 -o esp.png es.svg`). Desde is23 los PNGs son **recursos inertes** (sin catálogo en la capa de aplicación; la
+    bandera se mostrará a futuro con la empresa activa, issue #38) y `FlagResourcesTest` garantiza su existencia/dimensiones.
+- **País vs idioma**: conceptos desacoplados y el país ya no es un dato de la aplicación: no se elige en el wizard ni se persiste en `arume.yml`
+  (is23). La bandera del país aparecerá a futuro ligada a la empresa activa (issue #38). El idioma de la UI es la única preferencia global
+  conmutable en cualquier momento (`arume.language`); el botón de idioma en la barra superior muestra el nombre del idioma activo en texto (sin bandera).
+- **Códigos de país (ISO 3166-1)**: representación canónica en la **BBDD** (`t1_countries`) con alpha-3 en **mayúsculas** (`ESP`). Los PNGs de
+  banderas usan **minúsculas** (`esp.png`). El futuro mapeo empresa→bandera (issue #38) resolverá `t1_countries.alpha_3` →
+  `icons/flags/<alpha3 minúsculas>.png`.
 - **CSS**: `arume.css` en `src/arume-ui/src/main/resources/css/` extiende AtlantaFX con variables de acento verde. Cargar vía `scene.getStylesheets().add()`.
 - **Temas**: solo Claro (PrimerLight) y Oscuro (Dracula). Paleta de acentos verde (`-color-accent-*`) overrida en `.root` de `arume.css`.
 - **Nombrado de objetos de BBDD**: todo en minúsculas y en inglés, palabras separadas por guiones bajos. Cada tabla se prefija con `t<n>_` donde `n` es un identificador numérico incremental (0, 1, 2…):

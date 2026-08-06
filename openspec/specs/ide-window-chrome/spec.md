@@ -18,8 +18,8 @@ The main application window SHALL use `StageStyle.UNDECORATED` to remove native 
 - **THEN** the window SHALL have dimensions of 1200 pixels wide by 800 pixels tall
 
 ### Requirement: Custom title bar
-The main window SHALL display a custom title bar in the `top` region of the `BorderPane` containing a logo, a Help menu, a non-interactive country
-flag indicator, a language selector button with text label, a theme selector button, and window control buttons (minimize, maximize/restore, close).
+The main window SHALL display a custom title bar in the `top` region of the `BorderPane` containing a logo, a Help menu, a language selector
+button with text label, a theme selector button, and window control buttons (minimize, maximize/restore, close).
 
 #### Scenario: Title bar contains app logo
 - **WHEN** the main window is displayed
@@ -29,14 +29,9 @@ flag indicator, a language selector button with text label, a theme selector but
 - **WHEN** the main window is displayed
 - **THEN** a "Help" menu SHALL be visible in the title bar to the right of the logo, containing a single "About..." menu item
 
-#### Scenario: Title bar contains non-interactive country flag indicator
-- **WHEN** the main window is displayed with a configured country
-- **THEN** a non-interactive `ImageView` showing the flag of the configured country SHALL be visible in the title bar, positioned before the
-  language selector button, and SHALL be transparent to mouse events
-
 #### Scenario: Title bar contains language selector button with text label
 - **WHEN** the main window is displayed
-- **THEN** a language selector button SHALL be visible in the title bar, positioned between the country flag indicator and the theme button, and
+- **THEN** a language selector button SHALL be visible in the title bar, positioned before the theme button, and
   its label SHALL be the name of the currently active language in text (no flag icon)
 
 #### Scenario: Title bar contains theme selector button
@@ -58,7 +53,7 @@ flag indicator, a language selector button with text label, a theme selector but
 - **THEN** a close button with an X icon SHALL be visible at the rightmost area of the title bar
 
 #### Scenario: Window buttons do not trigger drag
-- **WHEN** the user presses a button on the title bar (minimize, maximize, close, language, theme, country flag indicator, or logo)
+- **WHEN** the user presses a button on the title bar (minimize, maximize, close, language, theme, or logo)
 - **THEN** the window SHALL NOT start dragging
 
 ### Requirement: Minimize button behavior

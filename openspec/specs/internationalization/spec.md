@@ -41,24 +41,20 @@ The system SHALL allow changing the active language at runtime and SHALL notify 
 - **THEN** the callback SHALL be invoked on every subsequent language change
 
 ### Requirement: OS language detection
-The system SHALL detect the operating system locale to determine the default country on first run, and SHALL derive the default UI language from
-the official language of the detected country.
+The system SHALL detect the operating system locale and SHALL derive the default UI language from its language tag: Spanish (`es`) for Spanish
+locales (including co-official languages such as `ca`, `gl` or `eu` when the country is `ES`), English (`en`) otherwise.
 
-#### Scenario: Spanish-speaking supported country defaults to Spanish
-- **WHEN** the OS locale country resolves to `es` or `cl`
-- **THEN** `Country.detectDefault().officialLanguage()` SHALL return `"es"` and the wizard SHALL initialize `I18nManager` with Spanish
+#### Scenario: Spanish locale defaults to Spanish
+- **WHEN** the OS locale language is `es`
+- **THEN** `I18nManager.detectDefaultLanguage()` SHALL return `"es"` and the wizard SHALL initialize `I18nManager` with Spanish
 
-#### Scenario: English-speaking supported country defaults to English
-- **WHEN** the OS locale country resolves to `gb`, `us`, `sg`, `au`, or `za`
-- **THEN** `Country.detectDefault().officialLanguage()` SHALL return `"en"` and the wizard SHALL initialize `I18nManager` with English
-
-#### Scenario: Unsupported country defaults to Spain and Spanish
-- **WHEN** the OS locale country does NOT match any supported country
-- **THEN** `Country.detectDefault()` SHALL return the `es` country and the wizard SHALL initialize `I18nManager` with Spanish
-
-#### Scenario: Co-official Spanish languages with country Spain still default to Spanish
+#### Scenario: Co-official Spanish languages with country Spain default to Spanish
 - **WHEN** the OS locale language is `ca`, `gl`, or `eu` AND the country is `ES`
-- **THEN** `Country.detectDefault()` SHALL return `es` and the official-language default SHALL remain `"es"`
+- **THEN** `I18nManager.detectDefaultLanguage()` SHALL return `"es"`
+
+#### Scenario: Non-Spanish locale defaults to English
+- **WHEN** the OS locale language is neither `es` nor a co-official language with country `ES` (e.g., `en`, `fr`, `de`)
+- **THEN** `I18nManager.detectDefaultLanguage()` SHALL return `"en"`
 
 ### Requirement: Resource bundle files
 The system SHALL provide resource bundle files for each supported language.
@@ -77,7 +73,7 @@ The system SHALL provide resource bundle files for each supported language.
 
 ### Requirement: Language persistence in arume.yml
 The system SHALL persist the user's language choice in the `arume.yml` configuration file under the key `arume.language`, and updates to other
-keys (theme, country) SHALL NOT alter the persisted language value.
+keys (theme) SHALL NOT alter the persisted language value.
 
 #### Scenario: Language is saved with configuration
 - **WHEN** the user completes the first-run wizard with language set to Spanish
@@ -89,7 +85,7 @@ keys (theme, country) SHALL NOT alter the persisted language value.
 
 #### Scenario: Language can be updated in-app
 - **WHEN** the user changes language from the title bar button
-- **THEN** `arume.yml` SHALL be updated with the new `arume.language` value and other persisted keys (theme, country) SHALL remain unchanged
+- **THEN** `arume.yml` SHALL be updated with the new `arume.language` value and other persisted keys (theme) SHALL remain unchanged
 
 ### Requirement: Language change from main application window
 The system SHALL provide a language selector button in the custom title bar allowing the user to toggle between English and Spanish, displaying the
@@ -97,7 +93,7 @@ name of the currently active language as its label.
 
 #### Scenario: Language button is present in title bar
 - **WHEN** the main application window is displayed
-- **THEN** a language selector button SHALL appear in the custom title bar, positioned between the country flag indicator and the theme button
+- **THEN** a language selector button SHALL appear in the custom title bar, positioned before the theme button
 
 #### Scenario: Language button shows the name of the active language
 - **WHEN** the main window is displayed with Spanish active
