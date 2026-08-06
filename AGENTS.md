@@ -97,6 +97,22 @@ Paquete base: com.angazo.arume
 - **Commits**: mensajes de commit en inglés, siguiendo conventional commits (feat:, fix:, docs:, etc.)
 - **Paquete base**: `com.angazo.arume`
 
+## Pruebas de la aplicación
+
+- **Capas**: mantener separadas las pruebas unitarias, las pruebas de integración con H2/Flyway/MyBatis y las pruebas funcionales de interfaz JavaFX. Las primeras deben cubrir la lógica aislada; las segundas, la persistencia; las terceras, los flujos que realiza el usuario.
+- **Pruebas UI**: usar TestFX con JUnit 5 (`org.testfx:testfx-junit5:4.0.18`) cuando se implementen las primeras pruebas de interfaz. AssertJ es opcional; no es necesario añadirlo para empezar.
+- **Hilo JavaFX**: las pruebas UI deben usar `ApplicationExtension` de TestFX y su `FxRobot`; no manipular escenas o controles desde un hilo JUnit arbitrario ni resolver la sincronización con `Thread.sleep()`.
+- **Vistas reales**: cargar el FXML real mediante `FXMLLoader` y utilizar el controlador real. No reconstruir dentro del test una versión simplificada de la vista.
+- **Primer test UI**: el primer caso previsto es `FirstRunWizardUiTest`, sobre `arume-ui/src/main/resources/fxml/first-run-wizard.fxml` y `FirstRunWizardController`. Debe probar una configuración válida: cargar el wizard, escribir ruta temporal, usuario y contraseñas, guardar y verificar el `WizardResult` y el cierre de la ventana.
+- **Aislamiento**: no arrancar `ArumeAppFX` ni Spring Boot para probar inicialmente el wizard. Ese arranque accede a `arume.yml`, al filesystem, al datasource y a ventanas modales; se reservará para futuros smoke tests. Usar `@TempDir`, no modificar la configuración real del usuario y cerrar todas las ventanas y diálogos.
+- **Estado global**: fijar explícitamente el idioma y el tema en cada prueba. Controlar los listeners estáticos de `I18nManager` para que una prueba no afecte a otra.
+- **Selectores**: los controles importantes deben tener un `id` CSS estable para TestFX, además de `fx:id` cuando el controlador necesite inyección. No usar el texto visible como selector principal porque cambia con la internacionalización.
+- **Orden recomendado**: wizard válido, validaciones del wizard, navegación de la ventana principal, cambio de idioma, cambio de tema, diálogo About y, finalmente, pocos smoke tests del arranque completo.
+- **Entorno gráfico local**: JavaFX necesita un `DISPLAY` accesible. La ejecución local se hace desde `src` con `./gradlew :arume-ui:test` o `./gradlew test` en una sesión gráfica.
+- **CI**: GitHub Actions ejecuta Linux sin monitor. Las pruebas UI deben ejecutarse dentro de Xvfb, por ejemplo `xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" ./gradlew build` desde `src`. Xvfb proporciona una pantalla virtual en memoria y no necesita un monitor físico.
+- **Monocle**: no añadir automáticamente `openjfx-monocle` 21 a este proyecto, que usa JavaFX 25. Las versiones disponibles para TestFX están orientadas principalmente a JavaFX 21 o anteriores y podrían no ser compatibles. La estrategia inicial es usar Xvfb en CI e investigar Monocle solo si fuese necesario.
+- **Referencia**: `docs/test-JavaFX.md` contiene la explicación completa y para principiantes de esta estrategia.
+
 ## Ficheros clave
 
 | Fichero | Contenido |

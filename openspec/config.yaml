@@ -5,6 +5,8 @@ context: |
   Estructura: 3 módulos — arume-app (entrada Spring Boot, config, migraciones), arume-db (mappers MyBatis, entidades), arume-ui (JavaFX, FXML, controladores).
   Paquete base: com.angazo.arume.
   Testing: JUnit 5 (JUnitPlatform).
+  Pruebas UI: usar TestFX 4.0.18 con JUnit 5 en arume-ui; cargar los FXML reales con FXMLLoader y ApplicationExtension, y probar primero el wizard de primera ejecución sin arrancar ArumeAppFX/Spring Boot. Usar ids CSS estables además de fx:id, @TempDir para aislamiento y no depender de textos traducibles.
+  Entorno UI: JavaFX necesita DISPLAY; en la CI Linux sin monitor ejecutar las pruebas dentro de Xvfb. No añadir Monocle 21 a JavaFX 25 sin verificar compatibilidad; la estrategia inicial es Xvfb.
   Convenciones: Lombok, Java moderno (var, text blocks), UI FXML + controladores Spring, arranque híbrido JavaFX→Spring Boot.
   Idioma: código fuente en inglés, documentación del proyecto en español.
   Dominio: facturación y contabilidad para particulares/empresas.
