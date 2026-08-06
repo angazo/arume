@@ -19,5 +19,7 @@ dependencies {
     implementation(libs.snakeyaml)
 
     testImplementation(libs.junit.jupiter)
+    testImplementation(libs.hamcrest)
+    testImplementation(libs.testfx.junit5)
     testRuntimeOnly(libs.junit.platform.launcher)
 }

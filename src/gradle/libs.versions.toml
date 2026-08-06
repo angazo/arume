@@ -6,6 +6,8 @@ h2 = "2.4.240"
 
 javafx = "25"
 junit-jupiter = "5.12.2"
+hamcrest = "2.2"
+testfx = "4.0.18"
 lombok-freefair = "9.5.0"
 mybatis-spring-boot = "4.0.1"
 mybatis-generator = "2.0.0"
@@ -23,6 +25,8 @@ ikonli-materialdesign2 = { module = "org.kordamp.ikonli:ikonli-materialdesign2-p
 flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway" }
 h2 = { module = "com.h2database:h2", version.ref = "h2" }
 junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit-jupiter" }
+hamcrest = { module = "org.hamcrest:hamcrest", version.ref = "hamcrest" }
+testfx-junit5 = { module = "org.testfx:testfx-junit5", version.ref = "testfx" }
 junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher", version = "1.12.2" }
 spring-boot = { module = "org.springframework.boot:spring-boot", version.ref = "spring-boot" }
 spring-boot-starter = { module = "org.springframework.boot:spring-boot-starter", version.ref = "spring-boot" }

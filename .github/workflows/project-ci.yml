@@ -22,5 +22,5 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       - name: Build and test
-        run: ./gradlew build
+        run: xvfb-run --auto-servernum --server-args="-screen 0 1920x1080x24" ./gradlew build
         working-directory: src
