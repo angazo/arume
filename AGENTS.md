@@ -52,13 +52,11 @@ Paquete base: com.angazo.arume
 ## Estado actual
 
 - **Fase actual:** Fase 0 — configuración en el arranque
-- **Último hito:** El país pasa a ser un dato de la empresa (issue #23): eliminada la selección de país del arranque — combo del wizard, bandera de
-  la barra superior y `arume.country` (campo `country` de `ArumeConfig`/`WizardResult`); eliminado el enum `Country` de `arume-ui` (el catálogo
-  canónico queda en `t1_countries`); el idioma por defecto del wizard vuelve a derivar del OS (`I18nManager.detectDefaultLanguage()`); PNGs de
-  banderas conservados como recursos inertes en `resources/icons/flags/` y protegidos por `FlagResourcesTest` (96×72, 4:3); carga tolerante de
-  `arume.yml` legacy con `arume.country` (la clave se ignora y se limpia al guardar). Capabilities: `country-selection` (eliminada),
-  `first-run-wizard`, `ide-window-chrome`, `internationalization`.
-- **Próximo hito:** Por definir
+- **Último hito:** Primera prueba automatizada de interfaz (issue #39): integrada la dependencia TestFX 4.0.18 con Hamcrest, creada
+  `FirstRunWizardUiTest` sobre el FXML y controlador reales, añadidos identificadores CSS estables al wizard y configurada la ejecución de la
+  CI dentro de Xvfb. Capabilities afectadas: cobertura automatizada de `first-run-wizard`.
+- **Próximo hito:** Ampliar la cobertura UI con validaciones del wizard (issue #41), smoke test del arranque completo (issue #43) e investigación de
+  Monocle compatible con JavaFX 25 (issue #42).
 
 ## Convenciones de código
 
