@@ -3,6 +3,8 @@ plugins {
 }
 
 dependencies {
+    implementation(project(":arume-core"))
+
     // Spring JDBC
     implementation(libs.spring.boot.starter.jdbc)
 

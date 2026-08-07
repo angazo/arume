@@ -31,6 +31,7 @@ junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher
 spring-boot = { module = "org.springframework.boot:spring-boot", version.ref = "spring-boot" }
 spring-boot-starter = { module = "org.springframework.boot:spring-boot-starter", version.ref = "spring-boot" }
 spring-boot-starter-jdbc = { module = "org.springframework.boot:spring-boot-starter-jdbc", version.ref = "spring-boot" }
+spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test", version.ref = "spring-boot" }
 mybatis-generator-lombok-plugin = { module = "com.softwareloop:mybatis-generator-lombok-plugin", version.ref = "mybatis-generator-lombok" }
 mybatis-generator-core = { module = "org.mybatis.generator:mybatis-generator-core", version.ref = "mybatis-generator" }
 mybatis-jsr310 = { module = "org.mybatis:mybatis-typehandlers-jsr310", version.ref = "mybatis-jsr310" }

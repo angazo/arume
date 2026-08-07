@@ -3,8 +3,11 @@ package com.angazo.arume.ui.controller;
 import javax.sql.DataSource;
 
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.control.Button;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
@@ -37,6 +40,7 @@ import org.kordamp.ikonli.materialdesign2.MaterialDesignR;
 import org.kordamp.ikonli.materialdesign2.MaterialDesignT;
 import org.kordamp.ikonli.materialdesign2.MaterialDesignW;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 import com.angazo.arume.ui.config.ConfigManager;
@@ -86,9 +90,13 @@ public class MainController {
 
     @FXML private VBox settingsPane;
 
+    @FXML private StackPane companiesPane;
+
     @FXML private VBox rightSidebar;
 
     @FXML private Button helpBtn;
+
+    @FXML private Button companiesBtn;
 
     @FXML private HBox statusBar;
 
@@ -98,6 +106,9 @@ public class MainController {
 
     @Autowired
     private DataSource dataSource;
+
+    @Autowired
+    private ApplicationContext applicationContext;
 
     private final ConfigManager configManager = new ConfigManager();
     private Stage stage;
@@ -145,8 +156,9 @@ minimizeBtn.setGraphic(FontIcon.of(MaterialDesignW.WINDOW_MINIMIZE, size));
         invoicesBtn.setGraphic(FontIcon.of(MaterialDesignR.RECEIPT, navSize));
         accountingBtn.setGraphic(FontIcon.of(MaterialDesignA.ACCOUNT, navSize));
         settingsBtn.setGraphic(FontIcon.of(MaterialDesignC.COG, navSize));
+        companiesBtn.setGraphic(FontIcon.of(FontAwesomeSolid.BUILDING, navSize));
 
-        var sidebarButtons = new javafx.scene.control.ButtonBase[]{dashboardBtn, invoicesBtn, accountingBtn, settingsBtn, helpBtn};
+        var sidebarButtons = new javafx.scene.control.ButtonBase[]{dashboardBtn, invoicesBtn, accountingBtn, settingsBtn, companiesBtn, helpBtn};
         for (var btn : sidebarButtons) {
             btn.setContentDisplay(ContentDisplay.TOP);
             btn.setStyle(btn.getStyle() + "-fx-font-size: 14px;");
@@ -226,12 +238,26 @@ minimizeBtn.setGraphic(FontIcon.of(MaterialDesignW.WINDOW_MINIMIZE, size));
             navGroup.selectToggle(null);
             showPane(settingsPane, "settings");
         });
+
+        companiesBtn.setOnAction(_ -> showCompanies());
     }
 
-    private void showPane(VBox pane, String name) {
+    private void showPane(Node pane, String name) {
         hideAllPanes();
         pane.setVisible(true);
         pane.setManaged(true);
+    }
+
+    private void showCompanies() {
+        try {
+            var loader = new FXMLLoader(getClass().getResource("/fxml/companies.fxml"));
+            loader.setControllerFactory(applicationContext::getBean);
+            Parent view = loader.load();
+            companiesPane.getChildren().setAll(view);
+            showPane(companiesPane, "companies");
+        } catch (Exception exception) {
+            throw new IllegalStateException("Unable to load the Companies view", exception);
+        }
     }
 
     private void hideAllPanes() {
@@ -264,6 +290,11 @@ minimizeBtn.setGraphic(FontIcon.of(MaterialDesignW.WINDOW_MINIMIZE, size));
     @FXML
     public void onAbout() {
         showAboutDialog();
+    }
+
+    @FXML
+    public void onCompanies() {
+        showCompanies();
     }
 
     private void showAboutDialog() {
@@ -386,6 +417,7 @@ private void refreshTexts() {
     invoicesBtn.setText(I18nManager.getString("nav.invoices"));
     accountingBtn.setText(I18nManager.getString("nav.accounting"));
     settingsBtn.setText(I18nManager.getString("nav.settings"));
+    companiesBtn.setText(I18nManager.getString("nav.companies"));
 
     helpMenu.setText(I18nManager.getString("menu.help"));
     aboutMenuItem.setText(I18nManager.getString("menu.help.about"));

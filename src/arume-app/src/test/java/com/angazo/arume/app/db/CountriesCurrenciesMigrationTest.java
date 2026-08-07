@@ -19,7 +19,7 @@ class CountriesCurrenciesMigrationTest {
     static void applyMigrations() {
         var flyway = Flyway.configure()
             .dataSource(URL, "sa", "")
-            .locations("classpath:db/migration")
+            .locations("classpath:db/migration/core")
             .load();
         flyway.migrate();
     }

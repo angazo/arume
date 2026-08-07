@@ -10,6 +10,7 @@ javafx {
 }
 
 dependencies {
+    implementation(project(":arume-core"))
     implementation(libs.spring.boot)
     implementation(libs.atlantafx.base)
     implementation(libs.ikonli.javafx)

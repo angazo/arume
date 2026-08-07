@@ -1,0 +1,28 @@
+dependencies {
+    implementation(project(":arume-core"))
+    implementation(project(":arume-db"))
+    implementation(libs.spring.boot)
+    implementation(libs.flyway.core)
+    implementation(libs.mybatis.generator.core)
+    implementation(libs.mybatis.spring.boot.starter)
+    runtimeOnly(libs.h2)
+
+    testImplementation(libs.junit.jupiter)
+    testRuntimeOnly(libs.junit.platform.launcher)
+}
+
+def esMbgenUrl = 'jdbc:h2:mem:esmbgen;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1'
+def esMbgenUser = 'mybatis'
+def esMbgenPassword = 'mybatis'
+
+tasks.register('mbGenerator', JavaExec) {
+    group = 'Util'
+    description = 'Migrates core and Spain schemas and runs MyBatis Generator for the Spain module'
+    inputs.file('MyBatis/mbg.xml')
+    inputs.files(fileTree('src/main/resources/db/migration'))
+
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.angazo.arume.es.generator.EsMbGeneratorMain'
+    args file('MyBatis/mbg.xml').absolutePath, projectDir.toString(),
+        esMbgenUrl, esMbgenUser, esMbgenPassword
+}
