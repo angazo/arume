@@ -2,7 +2,7 @@ package com.angazo.arume.db.persistence.adapter;
 
 import java.util.List;
 import java.util.Optional;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,6 +14,7 @@ import com.angazo.arume.core.domain.company.CompanyProfile;
 import com.angazo.arume.core.domain.company.FiscalIdentification;
 import com.angazo.arume.core.domain.company.LegalFormCode;
 import com.angazo.arume.core.domain.company.LocalTaxRegistration;
+import com.angazo.arume.core.domain.company.SubjectType;
 import com.angazo.arume.db.persistence.mapper.CompanyProfileRepository;
 import com.angazo.arume.db.persistence.mapper.CompanyTaxRegistrationRepository;
 import com.angazo.arume.db.persistence.mapper.CompanyRepository;
@@ -89,6 +90,7 @@ public class CompanyAdapter implements com.angazo.arume.core.port.company.Compan
         var registrations = companyRepository.selectTaxRegistrations(row.getId()).stream().map(this::toRegistration).toList();
         return Company.restore(
             companyId,
+            Boolean.TRUE.equals(row.getIsLegalPerson()) ? SubjectType.LEGAL_PERSON : SubjectType.NATURAL_PERSON,
             new FiscalIdentification(
                 new JurisdictionCode(row.getPrimaryFiscalJurisdiction()),
                 row.getPrimaryFiscalId()
@@ -109,7 +111,8 @@ public class CompanyAdapter implements com.angazo.arume.core.port.company.Compan
             .primaryFiscalId(company.primaryFiscalIdentification().value())
             .legalFormJurisdiction(company.legalForm().jurisdiction().value())
             .legalFormCode(company.legalForm().value())
-            .createdAt(LocalDateTime.now())
+            .isLegalPerson(company.subjectType().isLegalPerson())
+            .createdAt(OffsetDateTime.now())
             .build();
     }
 

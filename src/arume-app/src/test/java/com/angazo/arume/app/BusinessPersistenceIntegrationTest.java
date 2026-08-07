@@ -21,6 +21,7 @@ import com.angazo.arume.core.domain.common.JurisdictionCode;
 import com.angazo.arume.core.domain.company.CompanyProfile;
 import com.angazo.arume.core.domain.company.FiscalIdentification;
 import com.angazo.arume.core.domain.company.LegalFormCode;
+import com.angazo.arume.core.domain.company.SubjectType;
 import com.angazo.arume.es.logic.invoice.series.ConfigureInvoiceSeriesFiscalYearCommand;
 import com.angazo.arume.es.logic.invoice.series.CreateInvoiceSeriesCommand;
 import com.angazo.arume.es.logic.invoice.series.InvoiceSeriesApplicationService;
@@ -54,6 +55,7 @@ class BusinessPersistenceIntegrationTest {
     void persistsCoreAndSpainBusinessData() throws SQLException {
         var spain = new JurisdictionCode("ESP");
         var company = companyService.create(new CreateCompanyCommand(
+            SubjectType.LEGAL_PERSON,
             new FiscalIdentification(spain, "CIF-INTEGRATION-1"),
             new LegalFormCode(spain, "SL"),
             new CompanyProfile("Integration Company", spain, "Madrid", LocalDate.of(2024, 1, 1), null)
@@ -100,6 +102,7 @@ class BusinessPersistenceIntegrationTest {
     private com.angazo.arume.core.domain.company.Company createCompany(String fiscalId) {
         var spain = new JurisdictionCode("ESP");
         return companyService.create(new CreateCompanyCommand(
+            SubjectType.LEGAL_PERSON,
             new FiscalIdentification(spain, fiscalId),
             new LegalFormCode(spain, "SL"),
             new CompanyProfile("Concurrent Company", spain, "Madrid", LocalDate.of(2024, 1, 1), null)

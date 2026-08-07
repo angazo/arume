@@ -12,6 +12,7 @@ import com.angazo.arume.core.port.fiscalyear.FiscalYearRepository;
 import com.angazo.arume.es.SpainFiscalModule;
 import com.angazo.arume.es.logic.invoice.series.InvoiceSeriesApplicationService;
 import com.angazo.arume.es.logic.invoice.InvoiceSeriesFacade;
+import com.angazo.arume.es.logic.legalform.LegalFormsFacade;
 
 @Configuration
 public class BusinessApplicationConfiguration {
@@ -39,8 +40,11 @@ public class BusinessApplicationConfiguration {
     }
 
     @Bean
-    public SpainFiscalModule spainFiscalModule(InvoiceSeriesApplicationService invoiceSeriesService) {
-        return new SpainFiscalModule(invoiceSeriesService);
+    public SpainFiscalModule spainFiscalModule(
+        InvoiceSeriesApplicationService invoiceSeriesService,
+        LegalFormsFacade legalFormsFacade
+    ) {
+        return new SpainFiscalModule(invoiceSeriesService, legalFormsFacade);
     }
 
     @Bean

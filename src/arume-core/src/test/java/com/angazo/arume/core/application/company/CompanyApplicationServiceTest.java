@@ -17,6 +17,7 @@ import com.angazo.arume.core.domain.company.CompanyProfile;
 import com.angazo.arume.core.domain.company.FiscalIdentification;
 import com.angazo.arume.core.domain.company.LegalFormCode;
 import com.angazo.arume.core.domain.company.LocalTaxRegistration;
+import com.angazo.arume.core.domain.company.SubjectType;
 import com.angazo.arume.core.port.company.CompanyRepository;
 
 class CompanyApplicationServiceTest {
@@ -83,6 +84,7 @@ class CompanyApplicationServiceTest {
 
     private static CreateCompanyCommand command(String name, String fiscalId) {
         return new CreateCompanyCommand(
+            SubjectType.LEGAL_PERSON,
             new FiscalIdentification(SPAIN, fiscalId),
             new LegalFormCode(SPAIN, "SL"),
             profile(name, "Old address", LocalDate.of(2024, 1, 1))

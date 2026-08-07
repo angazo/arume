@@ -2,7 +2,7 @@ package com.angazo.arume.db.persistence.model;
 
 import jakarta.annotation.Generated;
 import java.io.Serializable;
-import java.time.LocalDateTime;
+import java.time.OffsetDateTime;
 import lombok.Builder;
 import lombok.Data;
 
@@ -11,6 +11,9 @@ import lombok.Data;
 public class T4Companies implements Serializable {
     @Generated(value="org.mybatis.generator.api.MyBatisGenerator", comments="Source field: public.t4_companies.id")
     private Long id;
+
+    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", comments="Source field: public.t4_companies.is_legal_person")
+    private Boolean isLegalPerson;
 
     @Generated(value="org.mybatis.generator.api.MyBatisGenerator", comments="Source field: public.t4_companies.primary_fiscal_jurisdiction")
     private String primaryFiscalJurisdiction;
@@ -25,7 +28,7 @@ public class T4Companies implements Serializable {
     private String legalFormCode;
 
     @Generated(value="org.mybatis.generator.api.MyBatisGenerator", comments="Source field: public.t4_companies.created_at")
-    private LocalDateTime createdAt;
+    private OffsetDateTime createdAt;
 
     @Generated(value="org.mybatis.generator.api.MyBatisGenerator", comments="Source Table: public.t4_companies")
     private static final long serialVersionUID = 1L;
