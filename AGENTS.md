@@ -55,12 +55,9 @@ Paquete base: com.angazo.arume
 
 ## Estado actual
 
-- **Fase actual:** Fase 0 — configuración en el arranque
-- **Último hito:** Primera prueba automatizada de interfaz (issue #39): integrada la dependencia TestFX 4.0.18 con Hamcrest, creada
-  `FirstRunWizardUiTest` sobre el FXML y controlador reales, añadidos identificadores CSS estables al wizard y configurada la ejecución de la
-  CI dentro de Xvfb. Capabilities afectadas: cobertura automatizada de `first-run-wizard`.
-- **Próximo hito:** Ampliar la cobertura UI con validaciones del wizard (issue #41), smoke test del arranque completo (issue #43) e investigación de
-  Monocle compatible con JavaFX 25 (issue #42).
+- **Fase actual:** Fase 1 — arquitectura internacional del producto
+- **Último hito:** Implementado y mergeado el issue #44: creados `arume-core` y `arume-es`, modelados empresa, ejercicios fiscales y series españolas, añadida la vista temporal de Empresas, separados los historiales Flyway core/país y establecidas las fronteras de persistencia con mappers generados, custom, repositorios globales y adaptadores. Change archivado como `2026-08-07-is44-international-business-foundation`.
+- **Próximo hito:** Definir el siguiente change de lógica de negocio sobre la base internacional, previsiblemente relacionado con facturas, clientes o la selección de empresa activa.
 
 ## Convenciones de código
 
