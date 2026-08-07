@@ -18,6 +18,7 @@ import com.angazo.arume.core.domain.company.CompanyProfile;
 import com.angazo.arume.core.domain.company.FiscalIdentification;
 import com.angazo.arume.core.domain.company.LegalFormCode;
 import com.angazo.arume.core.domain.common.JurisdictionCode;
+import com.angazo.arume.core.domain.company.SubjectType;
 import com.angazo.arume.core.domain.fiscalyear.FiscalYear;
 import com.angazo.arume.core.domain.fiscalyear.FiscalYearId;
 import com.angazo.arume.core.domain.fiscalyear.FiscalYearStatus;
@@ -136,6 +137,7 @@ class InvoiceSeriesApplicationServiceTest {
     private static final class InMemoryCompanyRepository implements CompanyRepository {
         private final Company company = Company.create(
             COMPANY_ID,
+            SubjectType.LEGAL_PERSON,
             new FiscalIdentification(SPAIN, "CIF-1"),
             new LegalFormCode(SPAIN, "SL"),
             new CompanyProfile("Company", SPAIN, "Address", LocalDate.of(2024, 1, 1), null)

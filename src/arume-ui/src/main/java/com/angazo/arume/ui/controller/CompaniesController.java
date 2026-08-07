@@ -1,11 +1,14 @@
 package com.angazo.arume.ui.controller;
 
 import java.time.LocalDate;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Locale;
 
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
@@ -20,20 +23,27 @@ import com.angazo.arume.core.domain.company.CompanyProfile;
 import com.angazo.arume.core.domain.company.FiscalIdentification;
 import com.angazo.arume.core.domain.company.LegalFormCode;
 import com.angazo.arume.core.domain.company.CompanySummary;
+import com.angazo.arume.core.domain.company.SubjectType;
+import com.angazo.arume.core.module.FiscalModuleRegistry;
+import com.angazo.arume.core.module.LegalFormsCapability;
 import com.angazo.arume.ui.i18n.I18nManager;
 
 @Component
 public class CompaniesController {
 
+    private static final String FORMAT_SEPARATOR = " — ";
+
     @FXML private Label titleLabel;
+    @FXML private Label subjectTypeLabel;
     @FXML private Label jurisdictionLabel;
     @FXML private Label fiscalIdLabel;
     @FXML private Label legalFormLabel;
     @FXML private Label legalNameLabel;
     @FXML private Label domicileLabel;
+    @FXML private ComboBox<String> subjectTypeCombo;
     @FXML private TextField jurisdictionField;
     @FXML private TextField fiscalIdField;
-    @FXML private TextField legalFormField;
+    @FXML private ComboBox<String> legalFormCombo;
     @FXML private TextField legalNameField;
     @FXML private TextField domicileField;
     @FXML private Button createButton;
@@ -41,9 +51,14 @@ public class CompaniesController {
     @FXML private ListView<CompanySummary> companyList;
 
     private final CompanyApplicationService companyService;
+    private final FiscalModuleRegistry fiscalModuleRegistry;
 
-    public CompaniesController(CompanyApplicationService companyService) {
+    public CompaniesController(
+        CompanyApplicationService companyService,
+        FiscalModuleRegistry fiscalModuleRegistry
+    ) {
         this.companyService = companyService;
+        this.fiscalModuleRegistry = fiscalModuleRegistry;
     }
 
     @FXML
@@ -59,19 +74,31 @@ public class CompaniesController {
             }
         });
         jurisdictionField.setText("ESP");
-        legalFormField.setText("SL");
+        jurisdictionField.textProperty().addListener((_, _, _) -> refreshLegalForms());
+        subjectTypeCombo.setItems(FXCollections.observableArrayList(
+            I18nManager.getString("companies.subjectType.naturalPerson"),
+            I18nManager.getString("companies.subjectType.legalPerson")
+        ));
+        subjectTypeCombo.getSelectionModel().select(
+            I18nManager.getString("companies.subjectType.legalPerson")
+        );
+        subjectTypeCombo.valueProperty().addListener((_, _, _) -> refreshLegalForms());
         I18nManager.onLanguageChange(this::refreshTexts);
         refreshTexts();
         refreshCompanies();
+        refreshLegalForms();
     }
 
     @FXML
     public void onCreate() {
         try {
             var jurisdiction = new JurisdictionCode(jurisdictionField.getText().trim().toUpperCase(Locale.ROOT));
+            var subjectType = selectedSubjectType();
+            var legalFormCode = selectedLegalFormCode();
             var company = companyService.create(new CreateCompanyCommand(
+                subjectType,
                 new FiscalIdentification(jurisdiction, fiscalIdField.getText()),
-                new LegalFormCode(jurisdiction, legalFormField.getText()),
+                new LegalFormCode(jurisdiction, legalFormCode),
                 new CompanyProfile(
                     legalNameField.getText(),
                     jurisdiction,
@@ -88,6 +115,72 @@ public class CompaniesController {
         }
     }
 
+    private SubjectType selectedSubjectType() {
+        var selected = subjectTypeCombo.getValue();
+        if (selected == null || selected.isBlank()) {
+            throw new IllegalArgumentException("No subject type selected");
+        }
+        if (selected.equals(I18nManager.getString("companies.subjectType.naturalPerson"))) {
+            return SubjectType.NATURAL_PERSON;
+        }
+        return SubjectType.LEGAL_PERSON;
+    }
+
+    private String selectedLegalFormCode() {
+        var selected = legalFormCombo.getValue();
+        if (selected == null || selected.isBlank()) {
+            throw new IllegalArgumentException("No legal form selected");
+        }
+        return selected.split(java.util.regex.Pattern.quote(FORMAT_SEPARATOR), 2)[0].trim();
+    }
+
+    private void refreshLegalForms() {
+        var jurisdiction = parseJurisdiction();
+        if (jurisdiction == null) {
+            disableLegalFormCombo(null);
+            return;
+        }
+
+        var subjectType = selectedSubjectType();
+        var capability = fiscalModuleRegistry.resolve(
+            jurisdiction.value(),
+            "legal-forms",
+            LegalFormsCapability.class
+        );
+        if (capability.isEmpty()) {
+            disableLegalFormCombo(I18nManager.getString("companies.legalForm.noCatalog"));
+            return;
+        }
+
+        List<String> entries = capability.get().getLegalForms(subjectType).stream()
+            .sorted(Comparator.comparing(LegalFormsCapability.LegalFormItem::description))
+            .map(item -> item.code() + FORMAT_SEPARATOR + item.description())
+            .toList();
+        legalFormCombo.setItems(FXCollections.observableArrayList(entries));
+        legalFormCombo.setDisable(false);
+        if (!entries.isEmpty()) {
+            legalFormCombo.getSelectionModel().selectFirst();
+        } else {
+            legalFormCombo.setValue(null);
+        }
+    }
+
+    private JurisdictionCode parseJurisdiction() {
+        var jurisdictionText = jurisdictionField.getText().trim().toUpperCase(Locale.ROOT);
+        try {
+            return new JurisdictionCode(jurisdictionText);
+        } catch (IllegalArgumentException exception) {
+            return null;
+        }
+    }
+
+    private void disableLegalFormCombo(String promptText) {
+        legalFormCombo.setDisable(true);
+        legalFormCombo.getItems().clear();
+        legalFormCombo.setValue(null);
+        legalFormCombo.setPromptText(promptText);
+    }
+
     private void refreshCompanies() {
         companyList.getItems().setAll(companyService.list());
     }
@@ -100,11 +193,13 @@ public class CompaniesController {
 
     private void refreshTexts() {
         titleLabel.setText(I18nManager.getString("companies.title"));
+        subjectTypeLabel.setText(I18nManager.getString("companies.subjectType"));
         jurisdictionLabel.setText(I18nManager.getString("companies.jurisdiction"));
         fiscalIdLabel.setText(I18nManager.getString("companies.fiscalId"));
         legalFormLabel.setText(I18nManager.getString("companies.legalForm"));
         legalNameLabel.setText(I18nManager.getString("companies.legalName"));
         domicileLabel.setText(I18nManager.getString("companies.domicile"));
         createButton.setText(I18nManager.getString("companies.create"));
+        refreshLegalForms();
     }
 }

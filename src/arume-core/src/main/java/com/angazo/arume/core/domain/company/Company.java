@@ -8,6 +8,7 @@ import java.util.Objects;
 public final class Company {
 
     private final CompanyId id;
+    private final SubjectType subjectType;
     private final FiscalIdentification primaryFiscalIdentification;
     private final LegalFormCode legalForm;
     private final List<CompanyProfile> profiles;
@@ -15,12 +16,14 @@ public final class Company {
 
     private Company(
         CompanyId id,
+        SubjectType subjectType,
         FiscalIdentification primaryFiscalIdentification,
         LegalFormCode legalForm,
         List<CompanyProfile> profiles,
         List<LocalTaxRegistration> localTaxRegistrations
     ) {
         this.id = Objects.requireNonNull(id, "id");
+        this.subjectType = Objects.requireNonNull(subjectType, "subjectType");
         this.primaryFiscalIdentification = Objects.requireNonNull(primaryFiscalIdentification, "primaryFiscalIdentification");
         this.legalForm = Objects.requireNonNull(legalForm, "legalForm");
         this.profiles = List.copyOf(profiles);
@@ -32,6 +35,7 @@ public final class Company {
 
     public static Company create(
         CompanyId id,
+        SubjectType subjectType,
         FiscalIdentification primaryFiscalIdentification,
         LegalFormCode legalForm,
         CompanyProfile initialProfile
@@ -40,11 +44,12 @@ public final class Company {
         if (initialProfile.validTo() != null) {
             throw new IllegalArgumentException("The initial company profile must be current");
         }
-        return new Company(id, primaryFiscalIdentification, legalForm, List.of(initialProfile), List.of());
+        return new Company(id, subjectType, primaryFiscalIdentification, legalForm, List.of(initialProfile), List.of());
     }
 
     public static Company restore(
         CompanyId id,
+        SubjectType subjectType,
         FiscalIdentification primaryFiscalIdentification,
         LegalFormCode legalForm,
         List<CompanyProfile> profiles,
@@ -55,7 +60,7 @@ public final class Company {
         if (profiles.isEmpty() || profiles.getLast().validTo() != null) {
             throw new IllegalArgumentException("Restored company must have a current profile");
         }
-        return new Company(id, primaryFiscalIdentification, legalForm, profiles, localTaxRegistrations);
+        return new Company(id, subjectType, primaryFiscalIdentification, legalForm, profiles, localTaxRegistrations);
     }
 
     public Company withId(CompanyId assignedId) {
@@ -66,7 +71,7 @@ public final class Company {
         if (id.isAssigned()) {
             throw new IllegalStateException("Company already has an assigned id");
         }
-        return new Company(assignedId, primaryFiscalIdentification, legalForm, profiles, localTaxRegistrations);
+        return new Company(assignedId, subjectType, primaryFiscalIdentification, legalForm, profiles, localTaxRegistrations);
     }
 
     public Company changeProfile(CompanyProfile newProfile) {
@@ -79,7 +84,7 @@ public final class Company {
         var updatedProfiles = new ArrayList<>(profiles);
         updatedProfiles.set(updatedProfiles.size() - 1, current.closeOn(newProfile.validFrom().minusDays(1)));
         updatedProfiles.add(newProfile);
-        return new Company(id, primaryFiscalIdentification, legalForm, updatedProfiles, localTaxRegistrations);
+        return new Company(id, subjectType, primaryFiscalIdentification, legalForm, updatedProfiles, localTaxRegistrations);
     }
 
     public Company registerLocalTaxRegistration(LocalTaxRegistration registration) {
@@ -89,7 +94,7 @@ public final class Company {
         }
         var updatedRegistrations = new ArrayList<>(localTaxRegistrations);
         updatedRegistrations.add(registration);
-        return new Company(id, primaryFiscalIdentification, legalForm, profiles, updatedRegistrations);
+        return new Company(id, subjectType, primaryFiscalIdentification, legalForm, profiles, updatedRegistrations);
     }
 
     public CompanyProfile profileAt(LocalDate date) {
@@ -108,6 +113,7 @@ public final class Company {
     public CompanySummary summary() {
         return new CompanySummary(
             id,
+            subjectType,
             currentProfile().legalName(),
             primaryFiscalIdentification.value(),
             currentProfile().fiscalResidence()
@@ -116,6 +122,10 @@ public final class Company {
 
     public CompanyId id() {
         return id;
+    }
+
+    public SubjectType subjectType() {
+        return subjectType;
     }
 
     public FiscalIdentification primaryFiscalIdentification() {

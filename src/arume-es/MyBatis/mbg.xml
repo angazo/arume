@@ -40,5 +40,11 @@
                             jdbcType="SMALLINT"
                             typeHandler="com.angazo.arume.es.persistence.model.typehandler.NumberingModeTypeHandler"/>
         </table>
+        <table schema="public" tableName="es3_legal_forms"
+               enableCountByExample="false" enableDeleteByExample="false"
+               enableUpdateByExample="false" enableSelectByExample="false"
+               modelType="flat">
+            <property name="useActualColumnNames" value="false"/>
+        </table>
     </context>
 </generatorConfiguration>

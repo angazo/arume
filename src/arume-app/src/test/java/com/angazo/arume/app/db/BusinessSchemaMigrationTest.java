@@ -54,6 +54,37 @@ class BusinessSchemaMigrationTest {
     }
 
     @Test
+    void companyJurisdictionsReferenceCountriesCatalog() throws Exception {
+        try (var connection = DriverManager.getConnection(URL, "sa", "");
+             var statement = connection.createStatement();
+             var result = statement.executeQuery(
+                 "SELECT COUNT(*) FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS "
+                     + "WHERE LOWER(CONSTRAINT_NAME) IN ('fk_t4_t1', 'fk_t4_t1_2')")) {
+            result.next();
+            assertEquals(2, result.getInt(1));
+        }
+    }
+
+    @Test
+    void companyCreatedAtIsTimestampWithTimeZone() throws Exception {
+        try (var connection = DriverManager.getConnection(URL, "sa", "");
+             var statement = connection.createStatement();
+             var result = statement.executeQuery(
+                 "SELECT DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS "
+                     + "WHERE LOWER(TABLE_NAME) = 't4_companies' AND LOWER(COLUMN_NAME) = 'created_at'")) {
+            assertTrue(result.next());
+            assertTrue(
+                result.getString(1).toUpperCase().contains("TIMESTAMP"),
+                "Expected TIMESTAMP-based type but was " + result.getString(1)
+            );
+            assertTrue(
+                result.getString(1).toUpperCase().contains("TIME ZONE"),
+                "Expected a time zone aware type but was " + result.getString(1)
+            );
+        }
+    }
+
+    @Test
     void SpainTablesReferenceCoreTables() throws Exception {
         try (var connection = DriverManager.getConnection(URL, "sa", "");
              var statement = connection.createStatement();
