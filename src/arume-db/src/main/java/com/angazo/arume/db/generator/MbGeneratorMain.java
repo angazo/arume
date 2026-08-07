@@ -60,7 +60,7 @@ public final class MbGeneratorMain {
     private static void applyMigrations(String url, String user, String password) {
         var flyway = Flyway.configure()
                 .dataSource(url, user, password)
-                .locations("classpath:db/migration")
+                .locations("classpath:db/migration/core")
                 .load();
         flyway.migrate();
     }

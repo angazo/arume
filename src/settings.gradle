@@ -1,5 +1,7 @@
 rootProject.name = "arume"
 
 include "arume-app"
+include "arume-core"
 include "arume-db"
+include "arume-es"
 include 'arume-ui'

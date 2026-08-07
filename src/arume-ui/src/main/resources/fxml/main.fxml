@@ -67,11 +67,13 @@
             <VBox fx:id="settingsPane" alignment="CENTER" visible="false" managed="false">
                 <Label text="Settings"/>
             </VBox>
+            <StackPane fx:id="companiesPane" visible="false" managed="false"/>
         </StackPane>
     </center>
 
     <right>
         <VBox fx:id="rightSidebar" styleClass="sidebar" spacing="4">
+            <Button fx:id="companiesBtn" onAction="#onCompanies"/>
             <Button fx:id="helpBtn" onAction="#showAboutFromHelp"/>
             <Region VBox.vgrow="ALWAYS"/>
         </VBox>

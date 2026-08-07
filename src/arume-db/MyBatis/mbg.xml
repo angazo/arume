@@ -40,9 +40,9 @@
         </javaTypeResolver>
 
         <!-- Target paths -->
-        <javaModelGenerator targetPackage="com.angazo.arume.db.model" targetProject="${projectDir}/src/main/java" />
+        <javaModelGenerator targetPackage="com.angazo.arume.db.persistence.model" targetProject="${projectDir}/src/main/java" />
         <sqlMapGenerator targetPackage="mappers" targetProject="${projectDir}/src/main/resources" />
-        <javaClientGenerator type="XMLMAPPER" targetPackage="com.angazo.arume.db.repository.generated" targetProject="${projectDir}/src/main/java"/>
+        <javaClientGenerator type="XMLMAPPER" targetPackage="com.angazo.arume.db.persistence.mapper.generated" targetProject="${projectDir}/src/main/java"/>
 
         <table schema="public" tableName="t1_countries"
                enableCountByExample="false" enableDeleteByExample="false"
@@ -70,6 +70,47 @@
             <property name="customizedNextVersion" value="false"/>
             <property name="versionColumn" value="version"/>
             <property name="enablePrimaryKeyClass" value="false"/>
+            </table>
+
+        <table schema="public" tableName="t4_companies"
+               enableCountByExample="false" enableDeleteByExample="false"
+               enableUpdateByExample="false" enableSelectByExample="false"
+               modelType="flat">
+            <property name="useActualColumnNames" value="false" />
+            <property name="customizedNextVersion" value="false"/>
+            <property name="versionColumn" value="version"/>
+            <property name="enablePrimaryKeyClass" value="false"/>
+            <generatedKey column="id" sqlStatement="JDBC" identity="true" />
+        </table>
+        <table schema="public" tableName="t5_company_profiles"
+               enableCountByExample="false" enableDeleteByExample="false"
+               enableUpdateByExample="false" enableSelectByExample="false"
+               modelType="flat">
+            <property name="useActualColumnNames" value="false" />
+            <property name="customizedNextVersion" value="false"/>
+            <property name="versionColumn" value="version"/>
+            <property name="enablePrimaryKeyClass" value="false"/>
+            <generatedKey column="id" sqlStatement="JDBC" identity="true" />
+        </table>
+        <table schema="public" tableName="t6_company_tax_registrations"
+               enableCountByExample="false" enableDeleteByExample="false"
+               enableUpdateByExample="false" enableSelectByExample="false"
+               modelType="flat">
+            <property name="useActualColumnNames" value="false" />
+            <property name="customizedNextVersion" value="false"/>
+            <property name="versionColumn" value="version"/>
+            <property name="enablePrimaryKeyClass" value="false"/>
+            <generatedKey column="id" sqlStatement="JDBC" identity="true" />
+        </table>
+        <table schema="public" tableName="t7_fiscal_years"
+               enableCountByExample="false" enableDeleteByExample="false"
+               enableUpdateByExample="false" enableSelectByExample="false"
+               modelType="flat">
+            <property name="useActualColumnNames" value="false" />
+            <property name="customizedNextVersion" value="false"/>
+            <property name="versionColumn" value="version"/>
+            <property name="enablePrimaryKeyClass" value="false"/>
+            <generatedKey column="id" sqlStatement="JDBC" identity="true" />
         </table>
 
     </context>

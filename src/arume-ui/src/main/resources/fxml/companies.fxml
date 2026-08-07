@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.angazo.arume.ui.controller.CompaniesController"
+      spacing="12">
+    <padding>
+        <Insets top="24" right="28" bottom="24" left="28"/>
+    </padding>
+
+    <Label fx:id="titleLabel" styleClass="heading"/>
+
+    <GridPane hgap="12" vgap="8">
+        <columnConstraints>
+            <ColumnConstraints minWidth="150"/>
+            <ColumnConstraints hgrow="ALWAYS"/>
+        </columnConstraints>
+        <Label fx:id="jurisdictionLabel" GridPane.rowIndex="0"/>
+        <TextField fx:id="jurisdictionField" id="companies-jurisdiction-field" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+        <Label fx:id="fiscalIdLabel" GridPane.rowIndex="1"/>
+        <TextField fx:id="fiscalIdField" id="companies-fiscal-id-field" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+        <Label fx:id="legalFormLabel" GridPane.rowIndex="2"/>
+        <TextField fx:id="legalFormField" id="companies-legal-form-field" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+        <Label fx:id="legalNameLabel" GridPane.rowIndex="3"/>
+        <TextField fx:id="legalNameField" id="companies-legal-name-field" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+        <Label fx:id="domicileLabel" GridPane.rowIndex="4"/>
+        <TextField fx:id="domicileField" id="companies-domicile-field" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+    </GridPane>
+
+    <Button fx:id="createButton" id="companies-create-button" onAction="#onCreate"/>
+    <Label fx:id="feedbackLabel" id="companies-feedback-label" wrapText="true"/>
+    <ListView fx:id="companyList" id="companies-list" VBox.vgrow="ALWAYS"/>
+</VBox>

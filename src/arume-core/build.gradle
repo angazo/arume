@@ -1,0 +1,23 @@
+tasks.register('verifyCoreIsolation') {
+    group = 'verification'
+    description = 'Verifies that the core compile classpath has no technical or country-specific modules'
+
+    doLast {
+        def forbidden = ['spring', 'mybatis', 'javafx', 'arume-db', 'arume-es']
+        def violations = configurations.compileClasspath.files.findAll { file ->
+            forbidden.any { token -> file.name.toLowerCase().contains(token) }
+        }
+        if (!violations.isEmpty()) {
+            throw new GradleException("arume-core has forbidden compile dependencies: ${violations*.name}")
+        }
+    }
+}
+
+tasks.named('check') {
+    dependsOn('verifyCoreIsolation')
+}
+
+dependencies {
+    testImplementation(libs.junit.jupiter)
+    testRuntimeOnly(libs.junit.platform.launcher)
+}

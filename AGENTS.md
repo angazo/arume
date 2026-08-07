@@ -25,9 +25,11 @@ Crear una aplicación que permita a un particular o empresa llevar su facturaci�
 
 ```
 src/
-├── arume-app/    → Punto de entrada Spring Boot, configuración
-├── arume-db/     → Capa de datos: mappers MyBatis, entidades, repositorios, migraciones Flyway
-└── arume-ui/     → Interfaz JavaFX (controladores, vistas FXML, recursos)
+├── arume-app/    → Punto de entrada Spring Boot, composición y configuración
+├── arume-core/   → Dominio común, casos de uso y puertos sin dependencias técnicas
+├── arume-db/     → Persistencia core: mappers MyBatis, adaptadores y migraciones Flyway core
+├── arume-es/     → Módulo español: dominio, persistencia y migraciones específicas
+└── arume-ui/     → Interfaz JavaFX común (controladores, vistas FXML, recursos)
 
 Paquete base: com.angazo.arume
 ```
@@ -36,8 +38,10 @@ Paquete base: com.angazo.arume
 
 | Módulo | Responsabilidad |
 |---|---|
-| `arume-app` | Arranque de la aplicación (`ArumeApp`), configuración Spring Boot, recursos (`application.yml`) |
-| `arume-db` | Acceso a datos: mappers MyBatis, entidades, configuración de base de datos, migraciones Flyway en `db/migration/` |
+| `arume-app` | Arranque de la aplicación (`ArumeApp`), composición de módulos, configuración Spring Boot y recursos (`application.yml`) |
+| `arume-core` | Dominio internacional, casos de uso, puertos de repositorio y contratos de capacidades fiscales; no depende de módulos técnicos o nacionales |
+| `arume-db` | Persistencia core: mappers MyBatis generados, adaptadores de repositorio, infraestructura Flyway y migraciones en `db/migration/core/` |
+| `arume-es` | Módulo español: series de facturación, capacidades fiscales, mappers/adaptadores propios y migraciones en `db/migration/es/` |
 | `arume-ui` | Interfaz de usuario JavaFX: controladores, vistas FXML, tema AtlantaFX |
 
 ## Comandos de uso frecuente
@@ -65,8 +69,8 @@ Paquete base: com.angazo.arume
 - **UI JavaFX**: vistas definidas en FXML, controladores Java como `@Controller` de Spring
 - **Arranque híbrido**: `ArumeAppFX.launch()` levanta JavaFX, que a su vez arranca Spring Boot vía `SpringApplication.run()`
 - **Base de datos**: H2 en modo PostgreSQL (`MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1`); en desarrollo se usa `jdbc:h2:mem:arume`
-- **Migraciones**: Flyway Community, scripts SQL versionados en `arume-db/src/main/resources/db/migration/`
-- **Generador MyBatis (tarea `mbGenerator`)**: la tarea de `arume-db` corre en un JVM forkeado (`JavaExec`) y ejecuta `com.angazo.arume.db.generator.MbGeneratorMain`, que primero aplica `Flyway.migrate()` a una BBDD H2 en memoria (`jdbc:h2:mem:mbgen;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1`) y después MyBatis Generator, de modo que el código generado refleja siempre las migraciones. La conexión se define una sola vez en `arume-db/build.gradle` y se inyecta en `MyBatis/mbg.xml` como `${mbgen.url}` / `${mbgen.user}` / `${mbgen.password}` (además de `${projectDir}`). Código generado: entidades en `com.angazo.arume.db.model`, repositorios en `com.angazo.arume.db.repository.generated` y mappers XML en `src/main/resources/mappers/`.
+- **Migraciones**: Flyway Community con historiales independientes (`flyway_core_schema_history` y `flyway_es_schema_history`). Las migraciones core están en `arume-db/src/main/resources/db/migration/core/` y las españolas en `arume-es/src/main/resources/db/migration/es/`; `arume-app` compone su ejecución en orden core → país. La base actual se elimina durante el primer arranque de esta fase y se inicializa desde cero.
+- **Generador MyBatis (tarea `mbGenerator`)**: la tarea de `arume-db` corre en un JVM forkeado (`JavaExec`) y ejecuta `com.angazo.arume.db.generator.MbGeneratorMain`, que primero aplica las migraciones core a una BBDD H2 en memoria (`jdbc:h2:mem:mbgen;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1`) y después MyBatis Generator, de modo que el código generado refleja siempre el esquema core. La conexión se define una sola vez en `arume-db/build.gradle` y se inyecta en `MyBatis/mbg.xml` como `${mbgen.url}` / `${mbgen.user}` / `${mbgen.password}` (además de `${projectDir}`). Código generado core: modelos en `com.angazo.arume.db.persistence.model`, mappers en `com.angazo.arume.db.persistence.mapper.generated`, mappers custom en `com.angazo.arume.db.persistence.mapper.custom`, repositorios globales en `com.angazo.arume.db.persistence.mapper` y adaptadores en `com.angazo.arume.db.persistence.adapter`. El módulo `arume-es` mantiene la misma convención de persistencia y dispone de su propio `mbGenerator`; los campos enumerados nacionales usan `columnOverride` con `javaType` y `typeHandler` propios.
 - **Ventanas modales**: todas usan `StageStyle.UNDECORATED` con barra de título custom (`.title-bar`, 40px) y botón de cierre. Consistencia visual con la ventana principal.
 - **Iconos**: Ikonli (`ikonli-javafx:12.3.1`) con packs FontAwesome5 y MaterialDesign2. Usar `FontIcon` para todos los iconos de la UI.
   - **Banderas de países**: Ikonli no cubre banderas por país. Se usan PNGs de 96×72 (3× del tamaño de visualización 32×24) en
@@ -83,15 +87,19 @@ Paquete base: com.angazo.arume
   `icons/flags/<alpha3 minúsculas>.png`.
 - **CSS**: `arume.css` en `src/arume-ui/src/main/resources/css/` extiende AtlantaFX con variables de acento verde. Cargar vía `scene.getStylesheets().add()`.
 - **Temas**: solo Claro (PrimerLight) y Oscuro (Dracula). Paleta de acentos verde (`-color-accent-*`) overrida en `.root` de `arume.css`.
-- **Nombrado de objetos de BBDD**: todo en minúsculas y en inglés, palabras separadas por guiones bajos. Cada tabla se prefija con `t<n>_` donde `n` es un identificador numérico incremental (0, 1, 2…):
-  - Tablas: `t0_app_config`, `t1_invoices`, `t2_invoice_lines`
-  - PK: `pk_t<n>` (ej. `pk_t0`, `pk_t1`)
-  - FK: `fk_t<origen>_t<destino>` (ej. `fk_t2_t1`). Si hay varias entre las mismas tablas: `fk_t2_t1_1`, `fk_t2_t1_2`
-  - UK: `uk_t<n>_<descripción>` (ej. `uk_t0_key`). Si hay varias: `uk_t0_key_1`, `uk_t0_key_2`
-  - Índices: `ix_t<n>_<descripción>` (ej. `ix_t1_date`). Si hay varios: `ix_t1_date_1`
+- **Nombrado de objetos de BBDD**: todo en minúsculas y en inglés, palabras separadas por guiones bajos. Las tablas core se prefijan con `t<n>_` y las tablas específicas de cada país con `<iso2><n>_`, donde `n` es un identificador numérico incremental dentro de cada espacio de nombres:
+  - Tablas core: `t0_app_config`, `t1_invoices`, `t2_invoice_lines`
+  - Tablas españolas: `es1_invoice_series`, `es2_invoice_series_fiscal_year`
+  - PK core: `pk_t<n>`; PK nacional: `pk_<iso2><n>` (ej. `pk_t0`, `pk_es1`)
+  - FK: `fk_<tabla_origen>_<tabla_destino>` (ej. `fk_t2_t1`, `fk_es2_t1`, `fk_es2_es1`). Si hay varias entre las mismas tablas, añadir sufijo incremental.
+  - UK: `uk_<prefijo_tabla>_<descripción>` (ej. `uk_t0_key`, `uk_es1_code`). Si hay varias, añadir sufijo incremental.
+  - Índices: `ix_<prefijo_tabla>_<descripción>` (ej. `ix_t1_date`, `ix_es1_code`). Si hay varios, añadir sufijo incremental.
+- **Identificadores internos**: las PK de las entidades de negocio utilizan `BIGINT GENERATED BY DEFAULT AS IDENTITY`; las FK que las referencian utilizan `BIGINT`. La BBDD asigna estos IDs y los adaptadores los devuelven al dominio mediante claves generadas JDBC. Los códigos naturales de catálogos ISO mantienen sus tipos propios (`SMALLINT`, `VARCHAR(3)`).
+- **Campos enumerados**: los enumerados persistidos como códigos numéricos utilizan `SMALLINT` y códigos explícitos estables. El `mbg.xml` del módulo propietario usa `columnOverride` con `javaType` y un `typeHandler` MyBatis propio para convertir el código a su enum Java; no se depende del ordinal accidental del enum.
 - **Columnas de catálogos ISO**: códigos numéricos (país/divisa) como `SMALLINT` (rango 0–999, SQL estándar) y PK; alpha-3 como `VARCHAR(3)` en **mayúsculas** con UK; nombres en inglés como `VARCHAR(100)`; símbolo de divisa como `VARCHAR(8)`.
 - **Migraciones con datos**: el seed de catálogos va en la misma migración que crea las tablas; los tests de migración se ubican en `arume-app/src/test/` y ejecutan Flyway contra H2 en memoria (`MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE`).
 - **Idioma**: código fuente en inglés (nombres de clases, métodos, variables, comentarios y logs) para facilitar la participación de la comunidad. Documentación del proyecto (AGENTS.md, Product-Spec.md, openspec/) en español
+- **Documentación OpenSpec**: la prosa de `proposal.md`, `design.md`, `tasks.md` y las especificaciones debe estar en español. Se mantienen en inglés únicamente las palabras, encabezados, etiquetas o marcadores que OpenSpec exija, además de nombres de módulos, clases, interfaces, rutas, códigos y otros identificadores técnicos.
 - **Commits**: mensajes de commit en inglés, siguiendo conventional commits (feat:, fix:, docs:, etc.)
 - **Paquete base**: `com.angazo.arume`
 

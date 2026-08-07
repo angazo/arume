@@ -20,8 +20,11 @@ tasks.named("bootRun") {
 dependencies {
 
     // Local modules
+    implementation(project(":arume-core"))
     implementation(project(":arume-db"))
+    implementation(project(":arume-es"))
     implementation(project(":arume-ui"))
+    implementation(libs.mybatis.spring.boot.starter)
 
     // Spring Boot application
     implementation(libs.spring.boot.starter)
@@ -32,5 +35,7 @@ dependencies {
     // Test dependencies
     testImplementation(libs.junit.jupiter)
     testImplementation(libs.flyway.core)
+    testImplementation(libs.h2)
+    testImplementation(libs.spring.boot.starter.test)
     testRuntimeOnly(libs.junit.platform.launcher)
 }
