@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import com.angazo.arume.core.port.company.CompanyFacade;
 import org.junit.jupiter.api.Test;
 
 import com.angazo.arume.core.domain.company.CompanyId;
@@ -20,7 +21,7 @@ import com.angazo.arume.core.domain.common.JurisdictionCode;
 import com.angazo.arume.core.domain.fiscalyear.FiscalYear;
 import com.angazo.arume.core.domain.fiscalyear.FiscalYearId;
 import com.angazo.arume.core.domain.fiscalyear.FiscalYearStatus;
-import com.angazo.arume.core.port.fiscalyear.FiscalYearRepository;
+import com.angazo.arume.core.port.fiscalyear.FiscalYearFacade;
 
 class FiscalYearApplicationServiceTest {
 
@@ -28,8 +29,8 @@ class FiscalYearApplicationServiceTest {
 
     @Test
     void createsShortFiscalYearAsOpen() {
-        var repository = new InMemoryFiscalYearRepository();
-        var companyRepository = new InMemoryCompanyRepository(COMPANY_ID);
+        var repository = new InMemoryFiscalYearFacade();
+        var companyRepository = new InMemoryCompanyFacade(COMPANY_ID);
         var service = service(repository, companyRepository);
 
         var fiscalYear = service.create(new CreateFiscalYearCommand(
@@ -45,8 +46,8 @@ class FiscalYearApplicationServiceTest {
 
     @Test
     void rejectsOverlappingFiscalYearForSameCompany() {
-        var repository = new InMemoryFiscalYearRepository();
-        var companyRepository = new InMemoryCompanyRepository(COMPANY_ID);
+        var repository = new InMemoryFiscalYearFacade();
+        var companyRepository = new InMemoryCompanyFacade(COMPANY_ID);
         var service = service(repository, companyRepository);
         service.create(command(COMPANY_ID, LocalDate.of(2024, 1, 1), LocalDate.of(2024, 12, 31)));
 
@@ -57,9 +58,9 @@ class FiscalYearApplicationServiceTest {
 
     @Test
     void allowsSamePeriodForDifferentCompanies() {
-        var repository = new InMemoryFiscalYearRepository();
+        var repository = new InMemoryFiscalYearFacade();
         var otherCompanyId = new CompanyId(2);
-        var companyRepository = new InMemoryCompanyRepository(COMPANY_ID, otherCompanyId);
+        var companyRepository = new InMemoryCompanyFacade(COMPANY_ID, otherCompanyId);
         var service = service(repository, companyRepository);
 
         service.create(command(COMPANY_ID, LocalDate.of(2024, 1, 1), LocalDate.of(2024, 12, 31)));
@@ -93,8 +94,8 @@ class FiscalYearApplicationServiceTest {
 
     @Test
     void rejectsFiscalYearForUnknownCompany() {
-        var repository = new InMemoryFiscalYearRepository();
-        var service = service(repository, new InMemoryCompanyRepository());
+        var repository = new InMemoryFiscalYearFacade();
+        var service = service(repository, new InMemoryCompanyFacade());
 
         assertThrows(IllegalArgumentException.class, () -> service.create(
             command(COMPANY_ID, LocalDate.of(2024, 1, 1), LocalDate.of(2024, 12, 31))
@@ -102,8 +103,8 @@ class FiscalYearApplicationServiceTest {
     }
 
     private static FiscalYearApplicationService service(
-        InMemoryFiscalYearRepository repository,
-        InMemoryCompanyRepository companyRepository
+        InMemoryFiscalYearFacade repository,
+        InMemoryCompanyFacade companyRepository
     ) {
         return new FiscalYearApplicationService(repository, companyRepository);
     }
@@ -112,7 +113,7 @@ class FiscalYearApplicationServiceTest {
         return new CreateFiscalYearCommand(companyId, start, end, "2024");
     }
 
-    private static final class InMemoryFiscalYearRepository implements FiscalYearRepository {
+    private static final class InMemoryFiscalYearFacade implements FiscalYearFacade {
         private final List<FiscalYear> fiscalYears = new ArrayList<>();
 
         @Override
@@ -146,17 +147,17 @@ class FiscalYearApplicationServiceTest {
         }
     }
 
-    private static final class InMemoryCompanyRepository implements com.angazo.arume.core.port.company.CompanyRepository {
+    private static final class InMemoryCompanyFacade implements CompanyFacade {
         private final List<Company> companies;
 
-        private InMemoryCompanyRepository(CompanyId... ids) {
+        private InMemoryCompanyFacade(CompanyId... ids) {
             companies = java.util.Arrays.stream(ids)
                 .map(id -> Company.create(
                     id,
                     SubjectType.LEGAL_PERSON,
-                    new FiscalIdentification(new JurisdictionCode("ESP"), Long.toString(id.value())),
-                    new LegalFormCode(new JurisdictionCode("ESP"), "SL"),
-                    new CompanyProfile("Company", new JurisdictionCode("ESP"), "Address", LocalDate.of(2024, 1, 1), null)
+                    new FiscalIdentification(new JurisdictionCode("ES"), Long.toString(id.value())),
+                    new LegalFormCode(new JurisdictionCode("ES"), "SL"),
+                    new CompanyProfile("Company", new JurisdictionCode("ES"), "Address", LocalDate.of(2024, 1, 1), null)
                 ))
                 .toList();
         }

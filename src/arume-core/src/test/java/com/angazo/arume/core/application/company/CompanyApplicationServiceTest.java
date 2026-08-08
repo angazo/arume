@@ -18,16 +18,16 @@ import com.angazo.arume.core.domain.company.FiscalIdentification;
 import com.angazo.arume.core.domain.company.LegalFormCode;
 import com.angazo.arume.core.domain.company.LocalTaxRegistration;
 import com.angazo.arume.core.domain.company.SubjectType;
-import com.angazo.arume.core.port.company.CompanyRepository;
+import com.angazo.arume.core.port.company.CompanyFacade;
 
 class CompanyApplicationServiceTest {
 
-    private static final JurisdictionCode SPAIN = new JurisdictionCode("ESP");
+    private static final JurisdictionCode SPAIN = new JurisdictionCode("ES");
     private static final CompanyId COMPANY_ID = new CompanyId(1);
 
     @Test
     void createsCompanyWithProtectedIdentity() {
-        var repository = new InMemoryCompanyRepository();
+        var repository = new InMemoryCompanyFacade();
         var service = new CompanyApplicationService(repository);
 
         var company = service.create(command("A Company", "CIF-1"));
@@ -39,7 +39,7 @@ class CompanyApplicationServiceTest {
 
     @Test
     void rejectsDuplicateFiscalIdentification() {
-        var repository = new InMemoryCompanyRepository();
+        var repository = new InMemoryCompanyFacade();
         var service = new CompanyApplicationService(repository);
         service.create(command("A Company", "CIF-1"));
 
@@ -48,7 +48,7 @@ class CompanyApplicationServiceTest {
 
     @Test
     void preservesPreviousProfileWhenCompanyChangesDomicile() {
-        var repository = new InMemoryCompanyRepository();
+        var repository = new InMemoryCompanyFacade();
         var service = new CompanyApplicationService(repository);
         service.create(command("A Company", "CIF-1"));
 
@@ -60,13 +60,13 @@ class CompanyApplicationServiceTest {
 
     @Test
     void preservesLocalTaxRegistrationsWithoutChangingPrimaryIdentity() {
-        var repository = new InMemoryCompanyRepository();
+        var repository = new InMemoryCompanyFacade();
         var service = new CompanyApplicationService(repository);
         service.create(command("A Company", "CIF-1"));
 
         var updated = service.registerLocalTaxRegistration(
             COMPANY_ID,
-            new LocalTaxRegistration(new JurisdictionCode("PRT"), "PT-1", LocalDate.of(2025, 1, 1), null)
+            new LocalTaxRegistration(new JurisdictionCode("PT"), "PT-1", LocalDate.of(2025, 1, 1), null)
         );
 
         assertEquals("CIF-1", updated.primaryFiscalIdentification().value());
@@ -75,7 +75,7 @@ class CompanyApplicationServiceTest {
 
     @Test
     void listsCompanySummaries() {
-        var repository = new InMemoryCompanyRepository();
+        var repository = new InMemoryCompanyFacade();
         var service = new CompanyApplicationService(repository);
         service.create(command("A Company", "CIF-1"));
 
@@ -95,7 +95,7 @@ class CompanyApplicationServiceTest {
         return new CompanyProfile(name, SPAIN, domicile, validFrom, null);
     }
 
-    private static final class InMemoryCompanyRepository implements CompanyRepository {
+    private static final class InMemoryCompanyFacade implements CompanyFacade {
         private final List<Company> companies = new ArrayList<>();
 
         @Override

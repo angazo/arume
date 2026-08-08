@@ -66,36 +66,54 @@ Paquete base: com.angazo.arume
 - **UI JavaFX**: vistas definidas en FXML, controladores Java como `@Controller` de Spring
 - **Arranque híbrido**: `ArumeAppFX.launch()` levanta JavaFX, que a su vez arranca Spring Boot vía `SpringApplication.run()`
 - **Base de datos**: H2 en modo PostgreSQL (`MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1`); en desarrollo se usa `jdbc:h2:mem:arume`
-- **Migraciones**: Flyway Community con historiales independientes (`flyway_core_schema_history` y `flyway_es_schema_history`). Las migraciones core están en `arume-db/src/main/resources/db/migration/core/` y las españolas en `arume-es/src/main/resources/db/migration/es/`; `arume-app` compone su ejecución en orden core → país. La base actual se elimina durante el primer arranque de esta fase y se inicializa desde cero.
+- **Migraciones**: Flyway Community con historiales independientes (`flyway_core_schema_history` y `flyway_es_schema_history`). Las migraciones core están en `arume-db/src/main/resources/db/migration/core/` y las españolas en `arume-es/src/main/resources/db/migration/es/`; `arume-app` compone su ejecución en orden core → país. Mientras el producto no tenga instalaciones que preservar, cada módulo mantiene **una única
+   migración de partida** (`V0.1.0.0`) que se reescribe en lugar de encadenar `ALTER TABLE`; la base actual se elimina antes del primer arranque y se
+   inicializa desde cero.
+ - **Datos por módulo**: el core solo siembra datos de referencia universales (idiomas, países, nombres de país por idioma y catálogos ISO como divisas). Los datos que dependen de una jurisdicción concreta —asociaciones país↔divisa (`t4_country_currency`), formas jurídicas, regímenes fiscales, etc.— los siembra el módulo nacional correspondiente en su propia migración, de modo que no se introducen en core filas para jurisdicciones que aún no tienen módulo.
 - **Generador MyBatis (tarea `mbGenerator`)**: la tarea de `arume-db` corre en un JVM forkeado (`JavaExec`) y ejecuta `com.angazo.arume.db.generator.MbGeneratorMain`, que primero aplica las migraciones core a una BBDD H2 en memoria (`jdbc:h2:mem:mbgen;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1`) y después MyBatis Generator, de modo que el código generado refleja siempre el esquema core. La conexión se define una sola vez en `arume-db/build.gradle` y se inyecta en `MyBatis/mbg.xml` como `${mbgen.url}` / `${mbgen.user}` / `${mbgen.password}` (además de `${projectDir}`). Código generado core: modelos en `com.angazo.arume.db.persistence.model`, mappers en `com.angazo.arume.db.persistence.mapper.generated`, mappers custom en `com.angazo.arume.db.persistence.mapper.custom`, repositorios globales en `com.angazo.arume.db.persistence.mapper` y adaptadores en `com.angazo.arume.db.persistence.adapter`. El módulo `arume-es` mantiene la misma convención de persistencia y dispone de su propio `mbGenerator`; los campos enumerados nacionales usan `columnOverride` con `javaType` y `typeHandler` propios.
 - **Ventanas modales**: todas usan `StageStyle.UNDECORATED` con barra de título custom (`.title-bar`, 40px) y botón de cierre. Consistencia visual con la ventana principal.
 - **Iconos**: Ikonli (`ikonli-javafx:12.3.1`) con packs FontAwesome5 y MaterialDesign2. Usar `FontIcon` para todos los iconos de la UI.
   - **Banderas de países**: Ikonli no cubre banderas por país. Se usan PNGs de 96×72 (3× del tamaño de visualización 32×24) en
-    `arume-ui/src/main/resources/icons/flags/<iso3>.png` (ISO-3 minúsculas), cargados vía `ImageView` con fit 32×24; el downsampling de
-    JavaFX mantiene la nitidez en pantallas HiDPI 1×/2×/3× sin lógica de DPI. Los PNGs se generan desde los SVGs de flag-icons
-    (licencia MIT, set 4×3 apaisado) alojados en `docs/banderas/` (nombrados por ISO-2, p. ej. `es.svg`). **Regeneración**: `rsvg-convert -w 96 -h 72 -o <iso3>.png <iso2>.svg`
-    (p. ej. `rsvg-convert -w 96 -h 72 -o esp.png es.svg`). Desde is23 los PNGs son **recursos inertes** (sin catálogo en la capa de aplicación; la
-    bandera se mostrará a futuro con la empresa activa, issue #38) y `FlagResourcesTest` garantiza su existencia/dimensiones.
+    `arume-ui/src/main/resources/icons/flags/<iso2>.png` (ISO-2 minúsculas, misma clave que `t1_countries.alpha2_code`), cargados vía `ImageView`
+    con fit 32×24; el downsampling de JavaFX mantiene la nitidez en pantallas HiDPI 1×/2×/3× sin lógica de DPI. Los PNGs se generan desde los SVGs
+    de flag-icons (licencia MIT, set 4×3 apaisado) alojados en `docs/banderas/`, también nombrados por ISO-2. **Regeneración**:
+    `rsvg-convert -w 96 -h 72 -o <iso2>.png <iso2>.svg` (p. ej. `rsvg-convert -w 96 -h 72 -o es.png es.svg`). Desde is23 los PNGs son
+    **recursos inertes** (sin catálogo en la capa de aplicación; la bandera se mostrará a futuro con la empresa activa, issue #38) y
+    `FlagResourcesTest` garantiza su existencia/dimensiones y que ninguno queda nombrado por alpha-3.
 - **País vs idioma**: conceptos desacoplados y el país ya no es un dato de la aplicación: no se elige en el wizard ni se persiste en `arume.yml`
   (is23). La bandera del país aparecerá a futuro ligada a la empresa activa (issue #38). El idioma de la UI es la única preferencia global
   conmutable en cualquier momento (`arume.language`); el botón de idioma en la barra superior muestra el nombre del idioma activo en texto (sin bandera).
-- **Códigos de país (ISO 3166-1)**: representación canónica en la **BBDD** (`t1_countries`) con alpha-3 en **mayúsculas** (`ESP`). Los PNGs de
-  banderas usan **minúsculas** (`esp.png`). El futuro mapeo empresa→bandera (issue #38) resolverá `t1_countries.alpha_3` →
-  `icons/flags/<alpha3 minúsculas>.png`.
+- **Códigos de país (ISO 3166-1)**: el código canónico es el **alpha-2 en mayúsculas** (`ES`), clave primaria de `t1_countries` y valor de
+  `JurisdictionCode`; `alpha3_code` y `numeric_code` se conservan como claves únicas para interoperar con otros sistemas. Todas las columnas de
+  jurisdicción de negocio son `VARCHAR(2)` con FK a `t1_countries(alpha2_code)`. Los PNGs de banderas usan el alpha-2 en **minúsculas**
+  (`es.png`), de modo que el recurso se deriva de la clave del catálogo (`icons/flags/<alpha2 minúsculas>.png`, issue #38).
 - **CSS**: `arume.css` en `src/arume-ui/src/main/resources/css/` extiende AtlantaFX con variables de acento verde. Cargar vía `scene.getStylesheets().add()`.
 - **Temas**: solo Claro (PrimerLight) y Oscuro (Dracula). Paleta de acentos verde (`-color-accent-*`) overrida en `.root` de `arume.css`.
 - **Nombrado de objetos de BBDD**: todo en minúsculas y en inglés, palabras separadas por guiones bajos. Las tablas core se prefijan con `t<n>_` y las tablas específicas de cada país con `<iso2><n>_`, donde `n` es un identificador numérico incremental dentro de cada espacio de nombres:
-  - Tablas core: `t0_app_config`, `t1_invoices`, `t2_invoice_lines`
+  - Tablas core actuales: `t0_i18n`, `t1_countries`, `t2_country_names`, `t3_currencies`, `t4_country_currency`, `t5_legal_forms`,
+    `t6_companies`, `t7_company_profiles`, `t8_company_tax_registrations`, `t9_fiscal_years`
   - Tablas españolas: `es1_invoice_series`, `es2_invoice_series_fiscal_year`
   - PK core: `pk_t<n>`; PK nacional: `pk_<iso2><n>` (ej. `pk_t0`, `pk_es1`)
   - FK: `fk_<tabla_origen>_<tabla_destino>` (ej. `fk_t2_t1`, `fk_es2_t1`, `fk_es2_es1`). Si hay varias entre las mismas tablas, añadir sufijo incremental.
   - UK: `uk_<prefijo_tabla>_<descripción>` (ej. `uk_t0_key`, `uk_es1_code`). Si hay varias, añadir sufijo incremental.
   - Índices: `ix_<prefijo_tabla>_<descripción>` (ej. `ix_t1_date`, `ix_es1_code`). Si hay varios, añadir sufijo incremental.
-- **Identificadores internos**: las PK de las entidades de negocio utilizan `BIGINT GENERATED BY DEFAULT AS IDENTITY`; las FK que las referencian utilizan `BIGINT`. La BBDD asigna estos IDs y los adaptadores los devuelven al dominio mediante claves generadas JDBC. Los códigos naturales de catálogos ISO mantienen sus tipos propios (`SMALLINT`, `VARCHAR(3)`).
+- **Identificadores internos**: las PK de las entidades de negocio utilizan `BIGINT GENERATED BY DEFAULT AS IDENTITY`; las FK que las referencian utilizan `BIGINT`. La BBDD asigna estos IDs y los adaptadores los devuelven al dominio mediante claves generadas JDBC. Los códigos naturales de catálogos ISO mantienen sus tipos propios (`VARCHAR(2)`, `VARCHAR(3)`, `SMALLINT`).
 - **Campos enumerados**: los enumerados persistidos como códigos numéricos utilizan `SMALLINT` y códigos explícitos estables. El `mbg.xml` del módulo propietario usa `columnOverride` con `javaType` y un `typeHandler` MyBatis propio para convertir el código a su enum Java; no se depende del ordinal accidental del enum.
-- **Columnas de catálogos ISO**: códigos numéricos (país/divisa) como `SMALLINT` (rango 0–999, SQL estándar) y PK; alpha-3 como `VARCHAR(3)` en **mayúsculas** con UK; nombres en inglés como `VARCHAR(100)`; símbolo de divisa como `VARCHAR(8)`.
-- **Tipo de sujeto de empresa**: la distinción persona física/jurídica se persiste como boolean `is_legal_person` (true = jurídica) en `t4_companies`, y el dominio usa el enum `SubjectType` (`NATURAL_PERSON`/`LEGAL_PERSON`) con helper `isLegalPerson()`. El adaptador mapea entre ambos.
-- **Catálogos de formas jurídicas por país**: cada módulo nacional expone su catálogo como tabla `<iso2><n>_legal_forms` con `code`, `country_numeric_code` (FK a `t1_countries`), `description` (en el idioma de la jurisdicción) y `is_legal_person` para clasificar la forma por tipo de sujeto. Se exponen como capacidad `LegalFormsCapability` resoluble por jurisdicción y filtrable por `SubjectType`. La UI usa un selector de tipo de sujeto que condiciona el combo de formas.
+- **Columnas de catálogos ISO**: en países, alpha-2 como `VARCHAR(2)` en **mayúsculas** y PK, con alpha-3 (`VARCHAR(3)`) y código numérico
+  (`SMALLINT`, rango 0–999) como UK; en divisas, código numérico `SMALLINT` como PK y alpha-3 `VARCHAR(3)` con UK. Nombres como `VARCHAR(100)` y
+  símbolo de divisa como `VARCHAR(8)`.
+- **Contenido de catálogo multiidioma**: los idiomas soportados viven en `t0_i18n` (código ISO 639-1 de dos letras en minúsculas como PK y nombre
+  en inglés) y deben coincidir con los bundles `messages*.properties`. El texto traducible de un catálogo se guarda en una tabla acompañante con
+  PK compuesta `(<clave del catálogo>, language_code)` y FK a `t0_i18n`; el patrón de referencia es `t2_country_names`. La consulta resuelve el
+  idioma activo con respaldo a inglés (`COALESCE`) y el idioma viaja como parámetro desde la UI hacia core (`CountryCatalogService.list(idioma)`),
+  nunca como estado global de core. Los nombres propios legales (formas jurídicas) **no** se traducen: se guardan en el idioma de su jurisdicción.
+- **Tipo de sujeto de empresa**: la distinción persona física/jurídica se persiste como boolean `is_legal_person` (true = jurídica) en `t6_companies`, y el dominio usa el enum `SubjectType` (`NATURAL_PERSON`/`LEGAL_PERSON`) con helper `isLegalPerson()`. El adaptador mapea entre ambos.
+- **Catálogo de formas jurídicas**: es **único y de core** (`t5_legal_forms`), con PK triple `(country_alpha2_code, is_legal_person, code)`,
+  `description` en el idioma de la jurisdicción y FK a `t1_countries`. Ningún módulo nacional crea tabla propia: cada país solo inserta sus filas
+  desde su migración. Se lee mediante el puerto core `LegalFormFacade` y `LegalFormCatalogService`, filtrando por jurisdicción y
+  `SubjectType`. `t6_companies` declara una FK compuesta `(legal_form_jurisdiction, is_legal_person, legal_form_code)` hacia el catálogo, de modo
+  que la BBDD garantiza la coherencia entre forma jurídica y tipo de sujeto. La UI usa un `ComboBox` de países (nombre localizado) y un selector de
+  tipo de sujeto que condicionan el combo de formas.
 - **Columnas temporales con timezone**: las columnas que representan instantes (p. ej. `created_at`) se declaran `TIMESTAMP WITH TIME ZONE` y se mapean a `java.time.OffsetDateTime`; no usar `TIMESTAMP`/`LocalDateTime` para instantes.
 - **Migraciones con datos**: el seed de catálogos va en la misma migración que crea las tablas; los tests de migración se ubican en `arume-app/src/test/` y ejecutan Flyway contra H2 en memoria (`MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE`).
 - **Idioma**: código fuente en inglés (nombres de clases, métodos, variables, comentarios y logs) para facilitar la participación de la comunidad. Documentación del proyecto (AGENTS.md, Product-Spec.md, openspec/) en español

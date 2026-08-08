@@ -2,29 +2,29 @@ package com.angazo.arume.core.application.fiscalyear;
 
 import java.util.Objects;
 
-import com.angazo.arume.core.port.company.CompanyRepository;
+import com.angazo.arume.core.port.company.CompanyFacade;
 import com.angazo.arume.core.domain.fiscalyear.FiscalYear;
 import com.angazo.arume.core.domain.fiscalyear.FiscalYearId;
 import com.angazo.arume.core.domain.fiscalyear.FiscalYearStatus;
-import com.angazo.arume.core.port.fiscalyear.FiscalYearRepository;
+import com.angazo.arume.core.port.fiscalyear.FiscalYearFacade;
 
 public final class FiscalYearApplicationService implements CreateFiscalYearUseCase {
 
-    private final FiscalYearRepository repository;
-    private final CompanyRepository companyRepository;
+    private final FiscalYearFacade repository;
+    private final CompanyFacade companyFacade;
 
     public FiscalYearApplicationService(
-        FiscalYearRepository repository,
-        CompanyRepository companyRepository
+        FiscalYearFacade repository,
+        CompanyFacade companyFacade
     ) {
         this.repository = Objects.requireNonNull(repository, "repository");
-        this.companyRepository = Objects.requireNonNull(companyRepository, "companyRepository");
+        this.companyFacade = Objects.requireNonNull(companyFacade, "companyRepository");
     }
 
     @Override
     public FiscalYear create(CreateFiscalYearCommand command) {
         Objects.requireNonNull(command, "command");
-        if (companyRepository.findById(command.companyId()).isEmpty()) {
+        if (companyFacade.findById(command.companyId()).isEmpty()) {
             throw new IllegalArgumentException("Company not found: " + command.companyId());
         }
         if (repository.existsOverlapping(command.companyId(), command.startDate(), command.endDate())) {

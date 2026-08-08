@@ -7,20 +7,14 @@ import com.angazo.arume.core.module.FiscalCapability;
 import com.angazo.arume.core.module.FiscalModule;
 import com.angazo.arume.core.module.FiscalModuleDescriptor;
 import com.angazo.arume.es.logic.invoice.series.InvoiceSeriesApplicationService;
-import com.angazo.arume.es.logic.legalform.LegalFormsFacade;
 
 public final class SpainFiscalModule implements FiscalModule {
 
     private final FiscalModuleDescriptor descriptor = SpainModuleDescriptor.descriptor();
     private final InvoiceSeriesCapability invoiceSeriesCapability;
-    private final SpainLegalFormsCapability legalFormsCapability;
 
-    public SpainFiscalModule(
-        InvoiceSeriesApplicationService invoiceSeriesService,
-        LegalFormsFacade legalFormsFacade
-    ) {
+    public SpainFiscalModule(InvoiceSeriesApplicationService invoiceSeriesService) {
         invoiceSeriesCapability = new InvoiceSeriesCapability(invoiceSeriesService);
-        legalFormsCapability = new SpainLegalFormsCapability(legalFormsFacade);
     }
 
     @Override
@@ -30,7 +24,7 @@ public final class SpainFiscalModule implements FiscalModule {
 
     @Override
     public Collection<? extends FiscalCapability> capabilities() {
-        return List.of(invoiceSeriesCapability, legalFormsCapability);
+        return List.of(invoiceSeriesCapability);
     }
 
     public record InvoiceSeriesCapability(InvoiceSeriesApplicationService service) implements FiscalCapability {

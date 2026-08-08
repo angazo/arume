@@ -44,6 +44,15 @@
         <sqlMapGenerator targetPackage="mappers" targetProject="${projectDir}/src/main/resources" />
         <javaClientGenerator type="XMLMAPPER" targetPackage="com.angazo.arume.db.persistence.mapper.generated" targetProject="${projectDir}/src/main/java"/>
 
+        <table schema="public" tableName="t0_i18n"
+               enableCountByExample="false" enableDeleteByExample="false"
+               enableUpdateByExample="false" enableSelectByExample="false"
+               modelType="flat">
+            <property name="useActualColumnNames" value="false" />
+            <property name="customizedNextVersion" value="false"/>
+            <property name="versionColumn" value="version"/>
+            <property name="enablePrimaryKeyClass" value="false"/>
+        </table>
         <table schema="public" tableName="t1_countries"
                enableCountByExample="false" enableDeleteByExample="false"
                enableUpdateByExample="false" enableSelectByExample="false"
@@ -53,7 +62,7 @@
             <property name="versionColumn" value="version"/>
             <property name="enablePrimaryKeyClass" value="false"/>
         </table>
-        <table schema="public" tableName="t2_currencies"
+        <table schema="public" tableName="t2_country_names"
                enableCountByExample="false" enableDeleteByExample="false"
                enableUpdateByExample="false" enableSelectByExample="false"
                modelType="flat">
@@ -62,7 +71,7 @@
             <property name="versionColumn" value="version"/>
             <property name="enablePrimaryKeyClass" value="false"/>
         </table>
-        <table schema="public" tableName="t3_country_currency"
+        <table schema="public" tableName="t3_currencies"
                enableCountByExample="false" enableDeleteByExample="false"
                enableUpdateByExample="false" enableSelectByExample="false"
                modelType="flat">
@@ -70,9 +79,27 @@
             <property name="customizedNextVersion" value="false"/>
             <property name="versionColumn" value="version"/>
             <property name="enablePrimaryKeyClass" value="false"/>
-            </table>
+        </table>
+        <table schema="public" tableName="t4_country_currency"
+               enableCountByExample="false" enableDeleteByExample="false"
+               enableUpdateByExample="false" enableSelectByExample="false"
+               modelType="flat">
+            <property name="useActualColumnNames" value="false" />
+            <property name="customizedNextVersion" value="false"/>
+            <property name="versionColumn" value="version"/>
+            <property name="enablePrimaryKeyClass" value="false"/>
+        </table>
+        <table schema="public" tableName="t5_legal_forms"
+               enableCountByExample="false" enableDeleteByExample="false"
+               enableUpdateByExample="false" enableSelectByExample="false"
+               modelType="flat">
+            <property name="useActualColumnNames" value="false" />
+            <property name="customizedNextVersion" value="false"/>
+            <property name="versionColumn" value="version"/>
+            <property name="enablePrimaryKeyClass" value="false"/>
+        </table>
 
-        <table schema="public" tableName="t4_companies"
+        <table schema="public" tableName="t6_companies"
                enableCountByExample="false" enableDeleteByExample="false"
                enableUpdateByExample="false" enableSelectByExample="false"
                modelType="flat">
@@ -82,7 +109,7 @@
             <property name="enablePrimaryKeyClass" value="false"/>
             <generatedKey column="id" sqlStatement="JDBC" identity="true" />
         </table>
-        <table schema="public" tableName="t5_company_profiles"
+        <table schema="public" tableName="t7_company_profiles"
                enableCountByExample="false" enableDeleteByExample="false"
                enableUpdateByExample="false" enableSelectByExample="false"
                modelType="flat">
@@ -92,7 +119,7 @@
             <property name="enablePrimaryKeyClass" value="false"/>
             <generatedKey column="id" sqlStatement="JDBC" identity="true" />
         </table>
-        <table schema="public" tableName="t6_company_tax_registrations"
+        <table schema="public" tableName="t8_company_tax_registrations"
                enableCountByExample="false" enableDeleteByExample="false"
                enableUpdateByExample="false" enableSelectByExample="false"
                modelType="flat">
@@ -102,7 +129,7 @@
             <property name="enablePrimaryKeyClass" value="false"/>
             <generatedKey column="id" sqlStatement="JDBC" identity="true" />
         </table>
-        <table schema="public" tableName="t7_fiscal_years"
+        <table schema="public" tableName="t9_fiscal_years"
                enableCountByExample="false" enableDeleteByExample="false"
                enableUpdateByExample="false" enableSelectByExample="false"
                modelType="flat">

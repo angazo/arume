@@ -2,24 +2,24 @@ package com.angazo.arume.es.logic.invoice.series;
 
 import java.util.List;
 import java.util.Objects;
-import com.angazo.arume.core.port.company.CompanyRepository;
-import com.angazo.arume.core.port.fiscalyear.FiscalYearRepository;
+import com.angazo.arume.core.port.company.CompanyFacade;
+import com.angazo.arume.core.port.fiscalyear.FiscalYearFacade;
 import com.angazo.arume.es.logic.invoice.InvoiceSeriesFacade;
 
 public final class InvoiceSeriesApplicationService {
 
     private final InvoiceSeriesFacade repository;
-    private final CompanyRepository companyRepository;
-    private final FiscalYearRepository fiscalYearRepository;
+    private final CompanyFacade companyFacade;
+    private final FiscalYearFacade fiscalYearFacade;
 
     public InvoiceSeriesApplicationService(
         InvoiceSeriesFacade repository,
-        CompanyRepository companyRepository,
-        FiscalYearRepository fiscalYearRepository
+        CompanyFacade companyFacade,
+        FiscalYearFacade fiscalYearFacade
     ) {
         this.repository = Objects.requireNonNull(repository, "repository");
-        this.companyRepository = Objects.requireNonNull(companyRepository, "companyRepository");
-        this.fiscalYearRepository = Objects.requireNonNull(fiscalYearRepository, "fiscalYearRepository");
+        this.companyFacade = Objects.requireNonNull(companyFacade, "companyRepository");
+        this.fiscalYearFacade = Objects.requireNonNull(fiscalYearFacade, "fiscalYearRepository");
     }
 
     public InvoiceSeries create(CreateInvoiceSeriesCommand command) {
@@ -41,7 +41,7 @@ public final class InvoiceSeriesApplicationService {
         Objects.requireNonNull(command, "command");
         var series = repository.findById(command.seriesId())
             .orElseThrow(() -> new IllegalArgumentException("Invoice series not found: " + command.seriesId()));
-        var fiscalYear = fiscalYearRepository.findById(command.fiscalYearId())
+        var fiscalYear = fiscalYearFacade.findById(command.fiscalYearId())
             .orElseThrow(() -> new IllegalArgumentException("Fiscal year not found: " + command.fiscalYearId()));
         if (!series.companyId().equals(fiscalYear.companyId())) {
             throw new IllegalArgumentException("The fiscal year belongs to another company");
@@ -60,7 +60,7 @@ public final class InvoiceSeriesApplicationService {
     }
 
     private void ensureCompanyExists(com.angazo.arume.core.domain.company.CompanyId companyId) {
-        if (companyRepository.findById(companyId).isEmpty()) {
+        if (companyFacade.findById(companyId).isEmpty()) {
             throw new IllegalArgumentException("Company not found: " + companyId);
         }
     }

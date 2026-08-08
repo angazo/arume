@@ -28,7 +28,7 @@
         <Label fx:id="subjectTypeLabel" GridPane.rowIndex="0"/>
         <ComboBox fx:id="subjectTypeCombo" id="companies-subject-type-combo" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
         <Label fx:id="jurisdictionLabel" GridPane.rowIndex="1"/>
-        <TextField fx:id="jurisdictionField" id="companies-jurisdiction-field" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+        <ComboBox fx:id="jurisdictionCombo" id="companies-jurisdiction-combo" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
         <Label fx:id="fiscalIdLabel" GridPane.rowIndex="2"/>
         <TextField fx:id="fiscalIdField" id="companies-fiscal-id-field" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
         <Label fx:id="legalFormLabel" GridPane.rowIndex="3"/>

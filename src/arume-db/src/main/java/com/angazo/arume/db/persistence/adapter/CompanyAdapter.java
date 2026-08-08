@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import java.time.OffsetDateTime;
 
+import com.angazo.arume.core.port.company.CompanyFacade;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,12 +19,12 @@ import com.angazo.arume.core.domain.company.SubjectType;
 import com.angazo.arume.db.persistence.mapper.CompanyProfileRepository;
 import com.angazo.arume.db.persistence.mapper.CompanyTaxRegistrationRepository;
 import com.angazo.arume.db.persistence.mapper.CompanyRepository;
-import com.angazo.arume.db.persistence.model.T4Companies;
-import com.angazo.arume.db.persistence.model.T5CompanyProfiles;
-import com.angazo.arume.db.persistence.model.T6CompanyTaxRegistrations;
+import com.angazo.arume.db.persistence.model.T6Companies;
+import com.angazo.arume.db.persistence.model.T7CompanyProfiles;
+import com.angazo.arume.db.persistence.model.T8CompanyTaxRegistrations;
 
 @Repository
-public class CompanyAdapter implements com.angazo.arume.core.port.company.CompanyRepository {
+public class CompanyAdapter implements CompanyFacade {
 
     private final CompanyRepository companyRepository;
     private final CompanyProfileRepository profileRepository;
@@ -84,7 +85,7 @@ public class CompanyAdapter implements com.angazo.arume.core.port.company.Compan
         ) != null;
     }
 
-    private Company toDomain(T4Companies row) {
+    private Company toDomain(T6Companies row) {
         var companyId = new CompanyId(row.getId());
         var profiles = companyRepository.selectProfiles(row.getId()).stream().map(this::toProfile).toList();
         var registrations = companyRepository.selectTaxRegistrations(row.getId()).stream().map(this::toRegistration).toList();
@@ -104,8 +105,8 @@ public class CompanyAdapter implements com.angazo.arume.core.port.company.Compan
         );
     }
 
-    private T4Companies toCompanyRow(Company company) {
-        return T4Companies.builder()
+    private T6Companies toCompanyRow(Company company) {
+        return T6Companies.builder()
             .id(company.id().isAssigned() ? company.id().value() : null)
             .primaryFiscalJurisdiction(company.primaryFiscalIdentification().jurisdiction().value())
             .primaryFiscalId(company.primaryFiscalIdentification().value())
@@ -116,8 +117,8 @@ public class CompanyAdapter implements com.angazo.arume.core.port.company.Compan
             .build();
     }
 
-    private T5CompanyProfiles toProfileRow(Company company, CompanyProfile profile) {
-        return T5CompanyProfiles.builder()
+    private T7CompanyProfiles toProfileRow(Company company, CompanyProfile profile) {
+        return T7CompanyProfiles.builder()
             .companyId(company.id().value())
             .legalName(profile.legalName())
             .fiscalResidence(profile.fiscalResidence().value())
@@ -127,8 +128,8 @@ public class CompanyAdapter implements com.angazo.arume.core.port.company.Compan
             .build();
     }
 
-    private T6CompanyTaxRegistrations toRegistrationRow(Company company, LocalTaxRegistration registration) {
-        return T6CompanyTaxRegistrations.builder()
+    private T8CompanyTaxRegistrations toRegistrationRow(Company company, LocalTaxRegistration registration) {
+        return T8CompanyTaxRegistrations.builder()
             .companyId(company.id().value())
             .jurisdiction(registration.jurisdiction().value())
             .taxId(registration.value())
@@ -137,7 +138,7 @@ public class CompanyAdapter implements com.angazo.arume.core.port.company.Compan
             .build();
     }
 
-    private CompanyProfile toProfile(T5CompanyProfiles row) {
+    private CompanyProfile toProfile(T7CompanyProfiles row) {
         return new CompanyProfile(
             row.getLegalName(),
             new JurisdictionCode(row.getFiscalResidence()),
@@ -147,7 +148,7 @@ public class CompanyAdapter implements com.angazo.arume.core.port.company.Compan
         );
     }
 
-    private LocalTaxRegistration toRegistration(T6CompanyTaxRegistrations row) {
+    private LocalTaxRegistration toRegistration(T8CompanyTaxRegistrations row) {
         return new LocalTaxRegistration(
             new JurisdictionCode(row.getJurisdiction()),
             row.getTaxId(),

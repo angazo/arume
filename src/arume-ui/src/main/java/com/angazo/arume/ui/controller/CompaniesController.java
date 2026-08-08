@@ -1,9 +1,7 @@
 package com.angazo.arume.ui.controller;
 
 import java.time.LocalDate;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Locale;
 
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
@@ -13,25 +11,28 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
+import javafx.util.StringConverter;
 
 import org.springframework.stereotype.Component;
 
+import com.angazo.arume.core.application.catalog.CountryCatalogService;
+import com.angazo.arume.core.application.catalog.LegalFormCatalogService;
 import com.angazo.arume.core.application.company.CompanyApplicationService;
 import com.angazo.arume.core.application.company.CreateCompanyCommand;
+import com.angazo.arume.core.domain.catalog.CountryCatalogEntry;
 import com.angazo.arume.core.domain.common.JurisdictionCode;
 import com.angazo.arume.core.domain.company.CompanyProfile;
+import com.angazo.arume.core.domain.company.CompanySummary;
 import com.angazo.arume.core.domain.company.FiscalIdentification;
 import com.angazo.arume.core.domain.company.LegalFormCode;
-import com.angazo.arume.core.domain.company.CompanySummary;
 import com.angazo.arume.core.domain.company.SubjectType;
-import com.angazo.arume.core.module.FiscalModuleRegistry;
-import com.angazo.arume.core.module.LegalFormsCapability;
 import com.angazo.arume.ui.i18n.I18nManager;
 
 @Component
 public class CompaniesController {
 
     private static final String FORMAT_SEPARATOR = " — ";
+    private static final String DEFAULT_JURISDICTION = "ES";
 
     @FXML private Label titleLabel;
     @FXML private Label subjectTypeLabel;
@@ -41,7 +42,7 @@ public class CompaniesController {
     @FXML private Label legalNameLabel;
     @FXML private Label domicileLabel;
     @FXML private ComboBox<String> subjectTypeCombo;
-    @FXML private TextField jurisdictionField;
+    @FXML private ComboBox<CountryCatalogEntry> jurisdictionCombo;
     @FXML private TextField fiscalIdField;
     @FXML private ComboBox<String> legalFormCombo;
     @FXML private TextField legalNameField;
@@ -51,14 +52,17 @@ public class CompaniesController {
     @FXML private ListView<CompanySummary> companyList;
 
     private final CompanyApplicationService companyService;
-    private final FiscalModuleRegistry fiscalModuleRegistry;
+    private final CountryCatalogService countryCatalogService;
+    private final LegalFormCatalogService legalFormCatalogService;
 
     public CompaniesController(
         CompanyApplicationService companyService,
-        FiscalModuleRegistry fiscalModuleRegistry
+        CountryCatalogService countryCatalogService,
+        LegalFormCatalogService legalFormCatalogService
     ) {
         this.companyService = companyService;
-        this.fiscalModuleRegistry = fiscalModuleRegistry;
+        this.countryCatalogService = countryCatalogService;
+        this.legalFormCatalogService = legalFormCatalogService;
     }
 
     @FXML
@@ -73,8 +77,18 @@ public class CompaniesController {
                     : item.legalName() + " (" + item.primaryFiscalIdentification() + ")");
             }
         });
-        jurisdictionField.setText("ESP");
-        jurisdictionField.textProperty().addListener((_, _, _) -> refreshLegalForms());
+        jurisdictionCombo.setConverter(new StringConverter<>() {
+            @Override
+            public String toString(CountryCatalogEntry entry) {
+                return entry == null ? null : entry.name();
+            }
+
+            @Override
+            public CountryCatalogEntry fromString(String value) {
+                return null;
+            }
+        });
+        jurisdictionCombo.valueProperty().addListener((_, _, _) -> refreshLegalForms());
         subjectTypeCombo.setItems(FXCollections.observableArrayList(
             I18nManager.getString("companies.subjectType.naturalPerson"),
             I18nManager.getString("companies.subjectType.legalPerson")
@@ -85,6 +99,7 @@ public class CompaniesController {
         subjectTypeCombo.valueProperty().addListener((_, _, _) -> refreshLegalForms());
         I18nManager.onLanguageChange(this::refreshTexts);
         refreshTexts();
+        refreshCountries();
         refreshCompanies();
         refreshLegalForms();
     }
@@ -92,7 +107,7 @@ public class CompaniesController {
     @FXML
     public void onCreate() {
         try {
-            var jurisdiction = new JurisdictionCode(jurisdictionField.getText().trim().toUpperCase(Locale.ROOT));
+            var jurisdiction = selectedJurisdiction();
             var subjectType = selectedSubjectType();
             var legalFormCode = selectedLegalFormCode();
             var company = companyService.create(new CreateCompanyCommand(
@@ -126,6 +141,14 @@ public class CompaniesController {
         return SubjectType.LEGAL_PERSON;
     }
 
+    private JurisdictionCode selectedJurisdiction() {
+        var selected = jurisdictionCombo.getValue();
+        if (selected == null) {
+            throw new IllegalArgumentException("No jurisdiction selected");
+        }
+        return selected.code();
+    }
+
     private String selectedLegalFormCode() {
         var selected = legalFormCombo.getValue();
         if (selected == null || selected.isBlank()) {
@@ -134,44 +157,42 @@ public class CompaniesController {
         return selected.split(java.util.regex.Pattern.quote(FORMAT_SEPARATOR), 2)[0].trim();
     }
 
+    private void refreshCountries() {
+        var previous = jurisdictionCombo.getValue();
+        var countries = countryCatalogService.list(I18nManager.getCurrentLanguage());
+        jurisdictionCombo.setItems(FXCollections.observableArrayList(countries));
+        selectJurisdiction(countries, previous == null ? DEFAULT_JURISDICTION : previous.code().value());
+    }
+
+    private void selectJurisdiction(List<CountryCatalogEntry> countries, String code) {
+        countries.stream()
+            .filter(entry -> entry.code().value().equals(code))
+            .findFirst()
+            .ifPresentOrElse(
+                entry -> jurisdictionCombo.getSelectionModel().select(entry),
+                () -> jurisdictionCombo.getSelectionModel().selectFirst()
+            );
+    }
+
     private void refreshLegalForms() {
-        var jurisdiction = parseJurisdiction();
+        var jurisdiction = jurisdictionCombo.getValue();
         if (jurisdiction == null) {
             disableLegalFormCombo(null);
             return;
         }
 
-        var subjectType = selectedSubjectType();
-        var capability = fiscalModuleRegistry.resolve(
-            jurisdiction.value(),
-            "legal-forms",
-            LegalFormsCapability.class
-        );
-        if (capability.isEmpty()) {
+        var items = legalFormCatalogService.list(jurisdiction.code(), selectedSubjectType());
+        if (items.isEmpty()) {
             disableLegalFormCombo(I18nManager.getString("companies.legalForm.noCatalog"));
             return;
         }
 
-        List<String> entries = capability.get().getLegalForms(subjectType).stream()
-            .sorted(Comparator.comparing(LegalFormsCapability.LegalFormItem::description))
+        var entries = items.stream()
             .map(item -> item.code() + FORMAT_SEPARATOR + item.description())
             .toList();
         legalFormCombo.setItems(FXCollections.observableArrayList(entries));
         legalFormCombo.setDisable(false);
-        if (!entries.isEmpty()) {
-            legalFormCombo.getSelectionModel().selectFirst();
-        } else {
-            legalFormCombo.setValue(null);
-        }
-    }
-
-    private JurisdictionCode parseJurisdiction() {
-        var jurisdictionText = jurisdictionField.getText().trim().toUpperCase(Locale.ROOT);
-        try {
-            return new JurisdictionCode(jurisdictionText);
-        } catch (IllegalArgumentException exception) {
-            return null;
-        }
+        legalFormCombo.getSelectionModel().selectFirst();
     }
 
     private void disableLegalFormCombo(String promptText) {
@@ -200,6 +221,7 @@ public class CompaniesController {
         legalNameLabel.setText(I18nManager.getString("companies.legalName"));
         domicileLabel.setText(I18nManager.getString("companies.domicile"));
         createButton.setText(I18nManager.getString("companies.create"));
+        refreshCountries();
         refreshLegalForms();
     }
 }
