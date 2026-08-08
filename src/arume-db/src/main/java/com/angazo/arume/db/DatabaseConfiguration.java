@@ -22,7 +22,7 @@ public class DatabaseConfiguration {
 
     private static final MigrationModuleDescriptor CORE_MIGRATIONS = new MigrationModuleDescriptor(
         "arume-core",
-        SchemaVersion.parse("0.1.0.2"),
+        SchemaVersion.parse("0.1.0.0"),
         SchemaVersion.parse("0.0.0.0"),
         "classpath:db/migration/core",
         "flyway_core_schema_history"

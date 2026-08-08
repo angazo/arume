@@ -3,17 +3,17 @@ package com.angazo.arume.app;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.sql.SQLException;
-
-import javax.sql.DataSource;
+import java.util.Comparator;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 
+import com.angazo.arume.core.application.catalog.LegalFormCatalogService;
+import com.angazo.arume.core.domain.catalog.LegalFormItem;
+import com.angazo.arume.core.domain.common.JurisdictionCode;
 import com.angazo.arume.core.domain.company.SubjectType;
-import com.angazo.arume.es.logic.legalform.LegalFormsFacade;
 
 @SpringBootTest(
     classes = ArumeApp.class,
@@ -27,47 +27,50 @@ import com.angazo.arume.es.logic.legalform.LegalFormsFacade;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_EACH_TEST_METHOD)
 class LegalFormsPersistenceIntegrationTest {
 
-    private static final short ESP = 724;
-    private static final short GBR = 826;
+    private static final JurisdictionCode SPAIN = new JurisdictionCode("ES");
+    private static final JurisdictionCode UNITED_KINGDOM = new JurisdictionCode("GB");
 
     @Autowired
-    private LegalFormsFacade legalFormsFacade;
-
-    @Autowired
-    private DataSource dataSource;
+    private LegalFormCatalogService legalFormCatalogService;
 
     @Test
-    void spainLegalPersonSeedIsAvailableThroughRepository() throws SQLException {
-        var forms = legalFormsFacade.listByCountryNumericCodeAndLegalPerson(ESP, SubjectType.LEGAL_PERSON);
+    void spainLegalPersonSeedIsAvailableThroughTheCoreCatalog() {
+        var forms = legalFormCatalogService.list(SPAIN, SubjectType.LEGAL_PERSON);
 
         assertEquals(14, forms.size());
-        assertTrue(forms.stream().anyMatch(form -> form.code().equals("SL")
-            && form.description().equals("Sociedad Limitada")));
-        assertTrue(forms.stream().anyMatch(form -> form.code().equals("SA")
-            && form.description().equals("Sociedad Anónima")));
-        assertTrue(forms.stream().anyMatch(form -> form.code().equals("SColl")
-            && form.description().equals("Sociedad Colectiva")));
-        assertTrue(forms.stream().anyMatch(form -> form.code().equals("SC")
-            && form.description().equals("Sociedad Civil")));
+        assertTrue(contains(forms, "SL", "Sociedad Limitada"));
+        assertTrue(contains(forms, "SA", "Sociedad Anónima"));
+        assertTrue(contains(forms, "SColl", "Sociedad Colectiva"));
+        assertTrue(contains(forms, "SC", "Sociedad Civil"));
     }
 
     @Test
-    void spainNaturalPersonSeedIsAvailableThroughRepository() throws SQLException {
-        var forms = legalFormsFacade.listByCountryNumericCodeAndLegalPerson(ESP, SubjectType.NATURAL_PERSON);
+    void spainNaturalPersonSeedIsAvailableThroughTheCoreCatalog() {
+        var forms = legalFormCatalogService.list(SPAIN, SubjectType.NATURAL_PERSON);
 
         assertEquals(3, forms.size());
-        assertTrue(forms.stream().anyMatch(form -> form.code().equals("EI")
-            && form.description().equals("Empresario individual")));
-        assertTrue(forms.stream().anyMatch(form -> form.code().equals("PA")
-            && form.description().equals("Profesional autónomo")));
-        assertTrue(forms.stream().anyMatch(form -> form.code().equals("ERL")
-            && form.description().equals("Emprendedor de Responsabilidad Limitada")));
+        assertTrue(contains(forms, "EI", "Empresario individual"));
+        assertTrue(contains(forms, "PA", "Profesional autónomo"));
+        assertTrue(contains(forms, "ERL", "Emprendedor de Responsabilidad Limitada"));
     }
 
     @Test
-    void otherCountriesHaveNoLegalFormsSeed() throws SQLException {
-        var forms = legalFormsFacade.listByCountryNumericCodeAndLegalPerson(GBR, SubjectType.LEGAL_PERSON);
+    void legalFormsAreSortedByDescription() {
+        var forms = legalFormCatalogService.list(SPAIN, SubjectType.LEGAL_PERSON);
 
-        assertTrue(forms.isEmpty());
+        assertEquals(
+            forms.stream().sorted(Comparator.comparing(LegalFormItem::description)).toList(),
+            forms
+        );
+    }
+
+    @Test
+    void otherCountriesHaveNoLegalFormsSeed() {
+        assertTrue(legalFormCatalogService.list(UNITED_KINGDOM, SubjectType.LEGAL_PERSON).isEmpty());
+        assertTrue(!legalFormCatalogService.hasCatalog(UNITED_KINGDOM, SubjectType.NATURAL_PERSON));
+    }
+
+    private static boolean contains(java.util.List<LegalFormItem> forms, String code, String description) {
+        return forms.stream().anyMatch(form -> form.code().equals(code) && form.description().equals(description));
     }
 }

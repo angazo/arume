@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
+import com.angazo.arume.core.port.fiscalyear.FiscalYearFacade;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,10 +13,10 @@ import com.angazo.arume.core.domain.fiscalyear.FiscalYear;
 import com.angazo.arume.core.domain.fiscalyear.FiscalYearId;
 import com.angazo.arume.core.domain.fiscalyear.FiscalYearStatus;
 import com.angazo.arume.db.persistence.mapper.FiscalYearRepository;
-import com.angazo.arume.db.persistence.model.T7FiscalYears;
+import com.angazo.arume.db.persistence.model.T9FiscalYears;
 
 @Repository
-public class FiscalYearAdapter implements com.angazo.arume.core.port.fiscalyear.FiscalYearRepository {
+public class FiscalYearAdapter implements FiscalYearFacade {
 
     private final FiscalYearRepository fiscalYearRepository;
 
@@ -54,8 +55,8 @@ public class FiscalYearAdapter implements com.angazo.arume.core.port.fiscalyear.
         return fiscalYearRepository.existsOverlapping(companyId.value(), startDate, endDate);
     }
 
-    private T7FiscalYears toRow(FiscalYear fiscalYear) {
-        return T7FiscalYears.builder()
+    private T9FiscalYears toRow(FiscalYear fiscalYear) {
+        return T9FiscalYears.builder()
             .id(fiscalYear.id().isAssigned() ? fiscalYear.id().value() : null)
             .companyId(fiscalYear.companyId().value())
             .startDate(fiscalYear.startDate())
@@ -65,7 +66,7 @@ public class FiscalYearAdapter implements com.angazo.arume.core.port.fiscalyear.
             .build();
     }
 
-    private FiscalYear toDomain(T7FiscalYears row) {
+    private FiscalYear toDomain(T9FiscalYears row) {
         return new FiscalYear(
             new FiscalYearId(row.getId()),
             new CompanyId(row.getCompanyId()),

@@ -1,6 +1,8 @@
 package com.angazo.arume.app.db;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.sql.DriverManager;
@@ -17,11 +19,31 @@ class CountriesCurrenciesMigrationTest {
 
     @BeforeAll
     static void applyMigrations() {
-        var flyway = Flyway.configure()
+        Flyway.configure()
             .dataSource(URL, "sa", "")
             .locations("classpath:db/migration/core")
-            .load();
-        flyway.migrate();
+            .table("flyway_core_schema_history")
+            .load()
+            .migrate();
+        Flyway.configure()
+            .dataSource(URL, "sa", "")
+            .locations("classpath:db/migration/es")
+            .table("flyway_es_schema_history")
+            .baselineOnMigrate(true)
+            .baselineVersion("0.0.0.0")
+            .load()
+            .migrate();
+    }
+
+    @Test
+    void languageCatalogContainsSupportedLanguages() throws SQLException {
+        try (var conn = DriverManager.getConnection(URL, "sa", "");
+             var stmt = conn.createStatement()) {
+
+            assertEquals(2, countRows(stmt, "t0_i18n"));
+            assertEquals("English", singleValue(stmt, "SELECT name FROM t0_i18n WHERE language_code = 'en'"));
+            assertEquals("Spanish", singleValue(stmt, "SELECT name FROM t0_i18n WHERE language_code = 'es'"));
+        }
     }
 
     @Test
@@ -30,12 +52,66 @@ class CountriesCurrenciesMigrationTest {
              var stmt = conn.createStatement()) {
 
             assertEquals(7, countRows(stmt, "t1_countries"));
-            assertEquals(8, countRows(stmt, "t2_currencies"));
-            assertEquals(8, countRows(stmt, "t3_country_currency"));
+            assertEquals(14, countRows(stmt, "t2_country_names"));
+            assertEquals(8, countRows(stmt, "t3_currencies"));
+            assertEquals(1, countRows(stmt, "t4_country_currency"));
 
-            var countries = queryCountry(stmt, 724);
-            assertEquals("ESP", countries.alpha3);
-            assertEquals("Spain", countries.name);
+            var spain = queryCountry(stmt, "ES");
+            assertEquals("ESP", spain.alpha3);
+            assertEquals(724, spain.numericCode);
+        }
+    }
+
+    @Test
+    void countriesTableHasNoNameColumn() throws SQLException {
+        try (var conn = DriverManager.getConnection(URL, "sa", "");
+             var stmt = conn.createStatement()) {
+
+            assertEquals(0, countRows(stmt, """
+                information_schema.columns
+                WHERE table_name = 't1_countries' AND column_name = 'name'
+                """));
+        }
+    }
+
+    @Test
+    void everyCountryHasANameInEveryLanguage() throws SQLException {
+        try (var conn = DriverManager.getConnection(URL, "sa", "");
+             var stmt = conn.createStatement()) {
+
+            assertEquals(0, countRows(stmt, """
+                (SELECT c.alpha2_code, l.language_code
+                 FROM t1_countries c
+                 CROSS JOIN t0_i18n l
+                 WHERE NOT EXISTS (
+                     SELECT 1 FROM t2_country_names n
+                     WHERE n.country_alpha2_code = c.alpha2_code
+                       AND n.language_code = l.language_code))
+                """));
+        }
+    }
+
+    @Test
+    void countryNamesAreSeededInBothLanguages() throws SQLException {
+        try (var conn = DriverManager.getConnection(URL, "sa", "");
+             var stmt = conn.createStatement()) {
+
+            assertEquals("Spain", countryName(stmt, "ES", "en"));
+            assertEquals("España", countryName(stmt, "ES", "es"));
+            assertEquals("United Kingdom", countryName(stmt, "GB", "en"));
+            assertEquals("Reino Unido", countryName(stmt, "GB", "es"));
+        }
+    }
+
+    @Test
+    void countryNameMustReferenceExistingCountryAndLanguage() throws SQLException {
+        try (var conn = DriverManager.getConnection(URL, "sa", "");
+             var stmt = conn.createStatement()) {
+
+            assertThrows(SQLException.class, () -> stmt.executeUpdate(
+                "INSERT INTO t2_country_names (country_alpha2_code, language_code, name) VALUES ('XX', 'en', 'Nowhere')"));
+            assertThrows(SQLException.class, () -> stmt.executeUpdate(
+                "INSERT INTO t2_country_names (country_alpha2_code, language_code, name) VALUES ('ES', 'fr', 'Espagne')"));
         }
     }
 
@@ -57,19 +133,29 @@ class CountriesCurrenciesMigrationTest {
     }
 
     @Test
-    void chileHasTwoCurrencies() throws SQLException {
+    void spainHasEuroCurrency() throws SQLException {
         try (var conn = DriverManager.getConnection(URL, "sa", "");
              var stmt = conn.createStatement();
              var rs = stmt.executeQuery(
-                 "SELECT currency_numeric_code FROM t3_country_currency WHERE country_numeric_code = 152")) {
+                 "SELECT currency_numeric_code FROM t4_country_currency WHERE country_alpha2_code = 'ES'")) {
 
             var codes = new java.util.ArrayList<Integer>();
             while (rs.next()) {
                 codes.add(rs.getInt(1));
             }
-            assertEquals(2, codes.size());
-            assertTrue(codes.contains(152), "Chile should have CLP (152)");
-            assertTrue(codes.contains(990), "Chile should have CLF (990)");
+            assertEquals(1, codes.size());
+            assertTrue(codes.contains(978), "Spain should have EUR (978)");
+        }
+    }
+
+    @Test
+    void duplicateAlpha3IsRejected() throws SQLException {
+        try (var conn = DriverManager.getConnection(URL, "sa", "");
+             var stmt = conn.createStatement()) {
+
+            assertThrows(SQLException.class, () -> stmt.executeUpdate(
+                "INSERT INTO t1_countries (alpha2_code, alpha3_code, numeric_code) VALUES ('XX', 'ESP', 999)"));
+            assertFalse(exists(stmt, "SELECT 1 FROM t1_countries WHERE alpha2_code = 'XX'"));
         }
     }
 
@@ -80,21 +166,40 @@ class CountriesCurrenciesMigrationTest {
         }
     }
 
-    private static CountryRow queryCountry(java.sql.Statement stmt, int numericCode) throws SQLException {
-        try (var rs = stmt.executeQuery("SELECT alpha3_code, name FROM t1_countries WHERE numeric_code = " + numericCode)) {
+    private static boolean exists(java.sql.Statement stmt, String sql) throws SQLException {
+        try (var rs = stmt.executeQuery(sql)) {
+            return rs.next();
+        }
+    }
+
+    private static String singleValue(java.sql.Statement stmt, String sql) throws SQLException {
+        try (var rs = stmt.executeQuery(sql)) {
             assertTrue(rs.next());
-            return new CountryRow(rs.getString(1), rs.getString(2));
+            return rs.getString(1);
+        }
+    }
+
+    private static String countryName(java.sql.Statement stmt, String alpha2, String language) throws SQLException {
+        return singleValue(stmt, "SELECT name FROM t2_country_names WHERE country_alpha2_code = '"
+            + alpha2 + "' AND language_code = '" + language + "'");
+    }
+
+    private static CountryRow queryCountry(java.sql.Statement stmt, String alpha2) throws SQLException {
+        try (var rs = stmt.executeQuery(
+            "SELECT alpha3_code, numeric_code FROM t1_countries WHERE alpha2_code = '" + alpha2 + "'")) {
+            assertTrue(rs.next());
+            return new CountryRow(rs.getString(1), rs.getInt(2));
         }
     }
 
     private static CurrencyRow queryCurrency(java.sql.Statement stmt, int numericCode) throws SQLException {
-        try (var rs = stmt.executeQuery("SELECT alpha3_code, name, symbol FROM t2_currencies WHERE numeric_code = " + numericCode)) {
+        try (var rs = stmt.executeQuery("SELECT alpha3_code, name, symbol FROM t3_currencies WHERE numeric_code = " + numericCode)) {
             assertTrue(rs.next());
             return new CurrencyRow(rs.getString(1), rs.getString(2), rs.getString(3));
         }
     }
 
-    private record CountryRow(String alpha3, String name) {
+    private record CountryRow(String alpha3, int numericCode) {
     }
 
     private record CurrencyRow(String alpha3, String name, String symbol) {

@@ -11,17 +11,17 @@ class FiscalModuleRegistryTest {
     @Test
     void resolvesCapabilityFromMatchingJurisdiction() {
         var capability = new TestCapability();
-        var module = new TestModule("ESP", capability);
+        var module = new TestModule("ES", capability);
         var registry = new FiscalModuleRegistry(List.of(module));
 
-        assertTrue(registry.resolve("ESP", "test", TestCapability.class).isPresent());
+        assertTrue(registry.resolve("ES", "test", TestCapability.class).isPresent());
     }
 
     @Test
     void returnsEmptyForUnavailableJurisdiction() {
-        var registry = new FiscalModuleRegistry(List.of(new TestModule("ESP", new TestCapability())));
+        var registry = new FiscalModuleRegistry(List.of(new TestModule("ES", new TestCapability())));
 
-        assertTrue(registry.resolve("PRT", "test", TestCapability.class).isEmpty());
+        assertTrue(registry.resolve("PT", "test", TestCapability.class).isEmpty());
     }
 
     private record TestCapability() implements FiscalCapability {

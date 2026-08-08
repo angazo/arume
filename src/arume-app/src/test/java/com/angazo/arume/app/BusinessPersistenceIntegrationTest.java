@@ -53,7 +53,7 @@ class BusinessPersistenceIntegrationTest {
 
     @Test
     void persistsCoreAndSpainBusinessData() throws SQLException {
-        var spain = new JurisdictionCode("ESP");
+        var spain = new JurisdictionCode("ES");
         var company = companyService.create(new CreateCompanyCommand(
             SubjectType.LEGAL_PERSON,
             new FiscalIdentification(spain, "CIF-INTEGRATION-1"),
@@ -74,9 +74,9 @@ class BusinessPersistenceIntegrationTest {
         ));
         var persistedSeries = seriesService.findByCompanyId(company.id()).getFirst();
 
-        assertEquals(1, countRows("t4_companies"));
-        assertEquals(1, countRows("t5_company_profiles"));
-        assertEquals(1, countRows("t7_fiscal_years"));
+        assertEquals(1, countRows("t6_companies"));
+        assertEquals(1, countRows("t7_company_profiles"));
+        assertEquals(1, countRows("t9_fiscal_years"));
         assertEquals(1, countRows("es1_invoice_series"));
         assertEquals(1, countRows("es2_invoice_series_fiscal_year"));
         assertEquals(NumberingMode.RESET_EACH_FISCAL_YEAR, persistedSeries.stateFor(fiscalYear.id()).numberingMode());
@@ -93,14 +93,14 @@ class BusinessPersistenceIntegrationTest {
             var secondId = second.get().id().value();
 
             assertNotEquals(firstId, secondId);
-            assertEquals(2, countRows("t4_companies"));
+            assertEquals(2, countRows("t6_companies"));
         } finally {
             executor.shutdownNow();
         }
     }
 
     private com.angazo.arume.core.domain.company.Company createCompany(String fiscalId) {
-        var spain = new JurisdictionCode("ESP");
+        var spain = new JurisdictionCode("ES");
         return companyService.create(new CreateCompanyCommand(
             SubjectType.LEGAL_PERSON,
             new FiscalIdentification(spain, fiscalId),

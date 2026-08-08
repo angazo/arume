@@ -14,48 +14,48 @@ import com.angazo.arume.core.domain.company.CompanyId;
 import com.angazo.arume.core.domain.company.FiscalIdentification;
 import com.angazo.arume.core.domain.fiscalyear.FiscalYear;
 import com.angazo.arume.core.domain.fiscalyear.FiscalYearId;
-import com.angazo.arume.core.domain.company.SubjectType;
 import com.angazo.arume.core.module.FiscalModuleRegistry;
-import com.angazo.arume.core.module.LegalFormsCapability;
-import com.angazo.arume.core.port.company.CompanyRepository;
-import com.angazo.arume.core.port.fiscalyear.FiscalYearRepository;
+import com.angazo.arume.core.port.company.CompanyFacade;
+import com.angazo.arume.core.port.fiscalyear.FiscalYearFacade;
 import com.angazo.arume.es.logic.invoice.InvoiceSeriesFacade;
 import com.angazo.arume.es.logic.invoice.series.InvoiceSeries;
 import com.angazo.arume.es.logic.invoice.series.InvoiceSeriesApplicationService;
 import com.angazo.arume.es.logic.invoice.series.InvoiceSeriesId;
-import com.angazo.arume.es.logic.legalform.LegalFormsFacade;
 
 class SpainFiscalModuleTest {
 
     @Test
-    void resolvesLegalFormsCapabilityForSpain() {
-        var module = new SpainFiscalModule(stubInvoiceSeriesService(), stubLegalFormsFacade());
-        var registry = new FiscalModuleRegistry(List.of(module));
+    void declaresSpainWithAnAlpha2Jurisdiction() {
+        var module = new SpainFiscalModule(stubInvoiceSeriesService());
 
-        var capability = registry.resolve("ESP", "legal-forms", LegalFormsCapability.class);
-
-        assertTrue(capability.isPresent());
-        assertEquals("legal-forms", capability.get().capabilityId());
-        assertEquals("SL", capability.get().getLegalForms(SubjectType.LEGAL_PERSON).getFirst().code());
+        assertEquals("ES", module.descriptor().jurisdictionCode());
     }
 
     @Test
-    void filtersLegalFormsBySubjectType() {
-        var module = new SpainFiscalModule(stubInvoiceSeriesService(), stubLegalFormsFacade());
+    void resolvesInvoiceSeriesCapabilityForSpain() {
+        var module = new SpainFiscalModule(stubInvoiceSeriesService());
         var registry = new FiscalModuleRegistry(List.of(module));
 
-        var capability = registry.resolve("ESP", "legal-forms", LegalFormsCapability.class);
+        var capability = registry.resolve("ES", "invoice-series", SpainFiscalModule.InvoiceSeriesCapability.class);
 
         assertTrue(capability.isPresent());
-        assertEquals("EI", capability.get().getLegalForms(SubjectType.NATURAL_PERSON).getFirst().code());
+        assertEquals("invoice-series", capability.get().capabilityId());
     }
 
     @Test
-    void returnsEmptyForJurisdictionWithoutLegalFormsCapability() {
-        var module = new SpainFiscalModule(stubInvoiceSeriesService(), stubLegalFormsFacade());
+    void doesNotExposeALegalFormsCapability() {
+        var module = new SpainFiscalModule(stubInvoiceSeriesService());
+
+        assertTrue(module.capabilities().stream()
+            .noneMatch(capability -> capability.capabilityId().equals("legal-forms")));
+    }
+
+    @Test
+    void returnsEmptyForAnotherJurisdiction() {
+        var module = new SpainFiscalModule(stubInvoiceSeriesService());
         var registry = new FiscalModuleRegistry(List.of(module));
 
-        var capability = registry.resolve("PRT", "legal-forms", LegalFormsCapability.class);
+        var capability = registry.resolve("PT", "invoice-series", SpainFiscalModule.InvoiceSeriesCapability.class);
 
         assertTrue(capability.isEmpty());
     }
@@ -83,7 +83,7 @@ class SpainFiscalModuleTest {
                     return false;
                 }
             },
-            new CompanyRepository() {
+            new CompanyFacade() {
                 @Override
                 public Company save(Company company) {
                     return company;
@@ -104,7 +104,7 @@ class SpainFiscalModuleTest {
                     return false;
                 }
             },
-            new FiscalYearRepository() {
+            new FiscalYearFacade() {
                 @Override
                 public FiscalYear save(FiscalYear fiscalYear) {
                     return fiscalYear;
@@ -126,11 +126,5 @@ class SpainFiscalModuleTest {
                 }
             }
         );
-    }
-
-    private static LegalFormsFacade stubLegalFormsFacade() {
-        return (countryNumericCode, subjectType) -> subjectType == SubjectType.NATURAL_PERSON
-            ? List.of(new LegalFormsCapability.LegalFormItem("EI", "Empresario individual"))
-            : List.of(new LegalFormsCapability.LegalFormItem("SL", "Sociedad Limitada"));
     }
 }

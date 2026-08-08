@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
 
 class FlagResourcesTest {
 
-    private static final List<String> FLAG_CODES = List.of("esp", "gbr", "usa", "chl", "sgp", "aus", "zaf");
+    private static final List<String> FLAG_CODES = List.of("es", "gb", "us", "cl", "sg", "au", "za");
 
     @Test
     void flagPngExistsForEverySupportedCode() {
@@ -34,6 +34,18 @@ class FlagResourcesTest {
                 assertEquals(72, image.getHeight(), "Unexpected height: " + path);
             } catch (Exception e) {
                 fail("Cannot read flag PNG " + path + ": " + e.getMessage());
+            }
+        }
+    }
+
+    @Test
+    void noFlagPngIsKeyedByAlpha3() {
+        for (var code : List.of("esp", "gbr", "usa", "chl", "sgp", "aus", "zaf")) {
+            var path = "/icons/flags/" + code + ".png";
+            try (InputStream in = getClass().getResourceAsStream(path)) {
+                assertNull(in, "Flag PNG should be keyed by alpha-2 but found: " + path);
+            } catch (Exception e) {
+                fail("Cannot check flag PNG " + path + ": " + e.getMessage());
             }
         }
     }

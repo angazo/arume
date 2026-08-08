@@ -46,8 +46,9 @@ class BusinessSchemaMigrationTest {
         try (var connection = DriverManager.getConnection(URL, "sa", "")) {
             assertTrue(tableExists(connection, "flyway_core_schema_history"));
             assertTrue(tableExists(connection, "flyway_es_schema_history"));
-            assertTrue(tableExists(connection, "t4_companies"));
-            assertTrue(tableExists(connection, "t7_fiscal_years"));
+            assertTrue(tableExists(connection, "t5_legal_forms"));
+            assertTrue(tableExists(connection, "t6_companies"));
+            assertTrue(tableExists(connection, "t9_fiscal_years"));
             assertTrue(tableExists(connection, "es1_invoice_series"));
             assertTrue(tableExists(connection, "es2_invoice_series_fiscal_year"));
         }
@@ -59,9 +60,9 @@ class BusinessSchemaMigrationTest {
              var statement = connection.createStatement();
              var result = statement.executeQuery(
                  "SELECT COUNT(*) FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS "
-                     + "WHERE LOWER(CONSTRAINT_NAME) IN ('fk_t4_t1', 'fk_t4_t1_2')")) {
+                     + "WHERE LOWER(CONSTRAINT_NAME) IN ('fk_t6_t1', 'fk_t6_t1_2', 'fk_t7_t1', 'fk_t8_t1')")) {
             result.next();
-            assertEquals(2, result.getInt(1));
+            assertEquals(4, result.getInt(1));
         }
     }
 
@@ -71,7 +72,7 @@ class BusinessSchemaMigrationTest {
              var statement = connection.createStatement();
              var result = statement.executeQuery(
                  "SELECT DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS "
-                     + "WHERE LOWER(TABLE_NAME) = 't4_companies' AND LOWER(COLUMN_NAME) = 'created_at'")) {
+                     + "WHERE LOWER(TABLE_NAME) = 't6_companies' AND LOWER(COLUMN_NAME) = 'created_at'")) {
             assertTrue(result.next());
             assertTrue(
                 result.getString(1).toUpperCase().contains("TIMESTAMP"),
@@ -90,9 +91,60 @@ class BusinessSchemaMigrationTest {
              var statement = connection.createStatement();
              var result = statement.executeQuery(
                  "SELECT COUNT(*) FROM INFORMATION_SCHEMA.REFERENTIAL_CONSTRAINTS "
-                     + "WHERE LOWER(CONSTRAINT_NAME) IN ('fk_es1_t4', 'fk_es2_t7', 'fk_es2_es1')")) {
+                     + "WHERE LOWER(CONSTRAINT_NAME) IN ('fk_es1_t6', 'fk_es2_t9', 'fk_es2_es1')")) {
             result.next();
             assertEquals(3, result.getInt(1));
+        }
+    }
+
+    @Test
+    void jurisdictionColumnsAreAlpha2() throws Exception {
+        try (var connection = DriverManager.getConnection(URL, "sa", "");
+             var statement = connection.createStatement();
+             var result = statement.executeQuery(
+                 "SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS "
+                     + "WHERE CHARACTER_MAXIMUM_LENGTH = 2 AND ("
+                     + "(LOWER(TABLE_NAME) = 't6_companies' AND LOWER(COLUMN_NAME) IN ('primary_fiscal_jurisdiction', 'legal_form_jurisdiction')) "
+                     + "OR (LOWER(TABLE_NAME) = 't7_company_profiles' AND LOWER(COLUMN_NAME) = 'fiscal_residence') "
+                     + "OR (LOWER(TABLE_NAME) = 't8_company_tax_registrations' AND LOWER(COLUMN_NAME) = 'jurisdiction'))")) {
+            result.next();
+            assertEquals(4, result.getInt(1));
+        }
+    }
+
+    @Test
+    void companyLegalFormIsConstrainedByTheLegalFormCatalog() throws Exception {
+        try (var connection = DriverManager.getConnection(URL, "sa", "");
+             var statement = connection.createStatement()) {
+
+            assertThrows(java.sql.SQLException.class, () -> statement.executeUpdate("""
+                INSERT INTO t6_companies (is_legal_person, primary_fiscal_jurisdiction, primary_fiscal_id,
+                                          legal_form_jurisdiction, legal_form_code)
+                VALUES (TRUE, 'ES', 'B00000000', 'ES', 'UNKNOWN')
+                """));
+            assertThrows(java.sql.SQLException.class, () -> statement.executeUpdate("""
+                INSERT INTO t6_companies (is_legal_person, primary_fiscal_jurisdiction, primary_fiscal_id,
+                                          legal_form_jurisdiction, legal_form_code)
+                VALUES (FALSE, 'ES', 'B00000001', 'ES', 'SL')
+                """));
+        }
+    }
+
+    @Test
+    void spainSeedsTheCoreLegalFormCatalog() throws Exception {
+        try (var connection = DriverManager.getConnection(URL, "sa", "");
+             var statement = connection.createStatement();
+             var result = statement.executeQuery(
+                 "SELECT COUNT(*) FROM t5_legal_forms WHERE country_alpha2_code = 'ES'")) {
+            result.next();
+            assertEquals(17, result.getInt(1));
+        }
+    }
+
+    @Test
+    void spainHasNoLegalFormTableOfItsOwn() throws Exception {
+        try (var connection = DriverManager.getConnection(URL, "sa", "")) {
+            org.junit.jupiter.api.Assertions.assertFalse(tableExists(connection, "es3_legal_forms"));
         }
     }
 

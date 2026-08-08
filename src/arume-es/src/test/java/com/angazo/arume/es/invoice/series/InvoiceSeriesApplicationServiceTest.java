@@ -22,12 +22,12 @@ import com.angazo.arume.core.domain.company.SubjectType;
 import com.angazo.arume.core.domain.fiscalyear.FiscalYear;
 import com.angazo.arume.core.domain.fiscalyear.FiscalYearId;
 import com.angazo.arume.core.domain.fiscalyear.FiscalYearStatus;
-import com.angazo.arume.core.port.company.CompanyRepository;
-import com.angazo.arume.core.port.fiscalyear.FiscalYearRepository;
+import com.angazo.arume.core.port.company.CompanyFacade;
+import com.angazo.arume.core.port.fiscalyear.FiscalYearFacade;
 
 class InvoiceSeriesApplicationServiceTest {
 
-    private static final JurisdictionCode SPAIN = new JurisdictionCode("ESP");
+    private static final JurisdictionCode SPAIN = new JurisdictionCode("ES");
     private static final CompanyId COMPANY_ID = new CompanyId(1);
     private static final FiscalYearId FISCAL_YEAR_ID = new FiscalYearId(1);
 
@@ -56,7 +56,7 @@ class InvoiceSeriesApplicationServiceTest {
     void storesResetStatePerFiscalYear() {
         var repository = new InMemoryInvoiceSeriesRepository();
         var fiscalYears = fiscalYearRepositoryFor(FISCAL_YEAR_ID, COMPANY_ID);
-        var service = new InvoiceSeriesApplicationService(repository, new InMemoryCompanyRepository(), fiscalYears);
+        var service = new InvoiceSeriesApplicationService(repository, new InMemoryCompanyFacade(), fiscalYears);
         var series = service.create(new CreateInvoiceSeriesCommand(COMPANY_ID, "ALU", "Main series", true));
 
         var configured = service.configureFiscalYear(new ConfigureInvoiceSeriesFiscalYearCommand(
@@ -70,7 +70,7 @@ class InvoiceSeriesApplicationServiceTest {
     @Test
     void rejectsFiscalYearFromAnotherCompany() {
         var repository = new InMemoryInvoiceSeriesRepository();
-        var fiscalYears = new InMemoryFiscalYearRepository();
+        var fiscalYears = new InMemoryFiscalYearFacade();
         fiscalYears.fiscalYear = new FiscalYear(
             FISCAL_YEAR_ID,
             new CompanyId(2),
@@ -79,7 +79,7 @@ class InvoiceSeriesApplicationServiceTest {
             FiscalYearStatus.OPEN,
             "2024"
         );
-        var service = new InvoiceSeriesApplicationService(repository, new InMemoryCompanyRepository(), fiscalYears);
+        var service = new InvoiceSeriesApplicationService(repository, new InMemoryCompanyFacade(), fiscalYears);
         var series = service.create(new CreateInvoiceSeriesCommand(COMPANY_ID, "ALU", "Main series", true));
 
         assertThrows(IllegalArgumentException.class, () -> service.configureFiscalYear(
@@ -88,11 +88,11 @@ class InvoiceSeriesApplicationServiceTest {
     }
 
     private static InvoiceSeriesApplicationService service(InMemoryInvoiceSeriesRepository repository) {
-        return new InvoiceSeriesApplicationService(repository, new InMemoryCompanyRepository(), new InMemoryFiscalYearRepository());
+        return new InvoiceSeriesApplicationService(repository, new InMemoryCompanyFacade(), new InMemoryFiscalYearFacade());
     }
 
-    private static InMemoryFiscalYearRepository fiscalYearRepositoryFor(FiscalYearId id, CompanyId companyId) {
-        var repository = new InMemoryFiscalYearRepository();
+    private static InMemoryFiscalYearFacade fiscalYearRepositoryFor(FiscalYearId id, CompanyId companyId) {
+        var repository = new InMemoryFiscalYearFacade();
         repository.fiscalYear = new FiscalYear(
             id,
             companyId,
@@ -134,7 +134,7 @@ class InvoiceSeriesApplicationServiceTest {
         }
     }
 
-    private static final class InMemoryCompanyRepository implements CompanyRepository {
+    private static final class InMemoryCompanyFacade implements CompanyFacade {
         private final Company company = Company.create(
             COMPANY_ID,
             SubjectType.LEGAL_PERSON,
@@ -164,7 +164,7 @@ class InvoiceSeriesApplicationServiceTest {
         }
     }
 
-    private static final class InMemoryFiscalYearRepository implements FiscalYearRepository {
+    private static final class InMemoryFiscalYearFacade implements FiscalYearFacade {
         private FiscalYear fiscalYear;
 
         @Override

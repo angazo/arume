@@ -8,13 +8,13 @@ import com.angazo.arume.core.domain.company.CompanyId;
 import com.angazo.arume.core.domain.company.CompanyProfile;
 import com.angazo.arume.core.domain.company.CompanySummary;
 import com.angazo.arume.core.domain.company.LocalTaxRegistration;
-import com.angazo.arume.core.port.company.CompanyRepository;
+import com.angazo.arume.core.port.company.CompanyFacade;
 
 public final class CompanyApplicationService implements CreateCompanyUseCase, ListCompaniesUseCase {
 
-    private final CompanyRepository repository;
+    private final CompanyFacade repository;
 
-    public CompanyApplicationService(CompanyRepository repository) {
+    public CompanyApplicationService(CompanyFacade repository) {
         this.repository = Objects.requireNonNull(repository, "repository");
     }
 

@@ -12,9 +12,9 @@ public final class SpainModuleDescriptor {
     public static FiscalModuleDescriptor descriptor() {
         return new FiscalModuleDescriptor(
             "arume-es",
-            "ESP",
+            "ES",
             "0.1.0",
-            "0.1.0.2"
+            "0.1.0.0"
         );
     }
 
@@ -22,7 +22,7 @@ public final class SpainModuleDescriptor {
         return new MigrationModuleDescriptor(
             "arume-es",
             SchemaVersion.parse("0.1.0.0"),
-            SchemaVersion.parse("0.1.0.2"),
+            SchemaVersion.parse("0.1.0.0"),
             "classpath:db/migration/es",
             "flyway_es_schema_history"
         );

@@ -7,17 +7,17 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 
-import com.angazo.arume.db.persistence.model.T7FiscalYears;
+import com.angazo.arume.db.persistence.model.T9FiscalYears;
 
 @Mapper
 public interface FiscalYearQueryMapper {
 
-    @Select("SELECT * FROM t7_fiscal_years WHERE company_id = #{companyId} ORDER BY start_date")
-    List<T7FiscalYears> selectByCompanyId(Long companyId);
+    @Select("SELECT * FROM t9_fiscal_years WHERE company_id = #{companyId} ORDER BY start_date")
+    List<T9FiscalYears> selectByCompanyId(Long companyId);
 
     @Select("""
         SELECT COUNT(*) > 0
-        FROM t7_fiscal_years
+        FROM t9_fiscal_years
         WHERE company_id = #{companyId}
           AND start_date <= #{endDate}
           AND end_date >= #{startDate}
