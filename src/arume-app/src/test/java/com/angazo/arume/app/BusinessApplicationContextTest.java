@@ -1,6 +1,7 @@
 package com.angazo.arume.app;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,7 +10,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import com.angazo.arume.core.application.company.CompanyApplicationService;
 import com.angazo.arume.core.application.fiscalyear.FiscalYearApplicationService;
 import com.angazo.arume.core.module.FiscalModuleRegistry;
+import com.angazo.arume.es.SpainFiscalModule;
 import com.angazo.arume.es.logic.invoice.series.InvoiceSeriesApplicationService;
+import com.angazo.arume.uk.UkFiscalModule;
 
 @SpringBootTest(
     classes = ArumeApp.class,
@@ -34,11 +37,36 @@ class BusinessApplicationContextTest {
     @Autowired
     private FiscalModuleRegistry fiscalModuleRegistry;
 
+    @Autowired
+    private SpainFiscalModule spainFiscalModule;
+
+    @Autowired
+    private UkFiscalModule ukFiscalModule;
+
     @Test
     void composesCoreAndSpainBusinessBeans() {
         assertNotNull(companyApplicationService);
         assertNotNull(fiscalYearApplicationService);
         assertNotNull(invoiceSeriesApplicationService);
         assertNotNull(fiscalModuleRegistry);
+    }
+
+    @Test
+    void bothNationalModulesAreRegistered() {
+        assertNotNull(spainFiscalModule);
+        assertNotNull(ukFiscalModule);
+        assertTrue(
+            fiscalModuleRegistry.resolve("ES", "invoice-series", SpainFiscalModule.InvoiceSeriesCapability.class)
+                .isPresent()
+        );
+    }
+
+    @Test
+    void theUnitedKingdomModuleExposesNoCapabilityAndDoesNotFallBackToSpain() {
+        assertTrue(ukFiscalModule.capabilities().isEmpty());
+        assertTrue(
+            fiscalModuleRegistry.resolve("GB", "invoice-series", SpainFiscalModule.InvoiceSeriesCapability.class)
+                .isEmpty()
+        );
     }
 }

@@ -2,7 +2,7 @@ package com.angazo.arume.core.domain.catalog;
 
 import java.util.Objects;
 
-public record LegalFormItem(String code, String description) {
+public record LegalFormItem(String code, String description, boolean organization) {
 
     public LegalFormItem {
         code = requireText(code, "code");

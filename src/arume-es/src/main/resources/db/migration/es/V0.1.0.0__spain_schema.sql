@@ -29,24 +29,24 @@ CREATE TABLE es2_invoice_series_fiscal_year (
 
 CREATE INDEX ix_es2_fiscal_year ON es2_invoice_series_fiscal_year (fiscal_year_id);
 
-INSERT INTO t5_legal_forms (country_alpha2_code, is_legal_person, code, description) VALUES
-    ('ES', FALSE, 'EI',    'Empresario individual'),
-    ('ES', FALSE, 'PA',    'Profesional autónomo'),
-    ('ES', FALSE, 'ERL',   'Emprendedor de Responsabilidad Limitada'),
-    ('ES', TRUE,  'SL',    'Sociedad Limitada'),
-    ('ES', TRUE,  'SLU',   'Sociedad Limitada Unipersonal'),
-    ('ES', TRUE,  'SA',    'Sociedad Anónima'),
-    ('ES', TRUE,  'SAU',   'Sociedad Anónima Unipersonal'),
-    ('ES', TRUE,  'SColl', 'Sociedad Colectiva'),
-    ('ES', TRUE,  'SCom',  'Sociedad Comanditaria Simple'),
-    ('ES', TRUE,  'SComA', 'Sociedad Comanditaria por Acciones'),
-    ('ES', TRUE,  'SCoop', 'Sociedad Cooperativa'),
-    ('ES', TRUE,  'SLL',   'Sociedad Limitada Laboral'),
-    ('ES', TRUE,  'SAL',   'Sociedad Anónima Laboral'),
-    ('ES', TRUE,  'SC',    'Sociedad Civil'),
-    ('ES', TRUE,  'CB',    'Comunidad de Bienes'),
-    ('ES', TRUE,  'AIE',   'Agrupación de Interés Económico'),
-    ('ES', TRUE,  'SAT',   'Sociedad Agraria de Transformación');
+INSERT INTO t5_legal_forms (country_alpha2_code, code, description, is_organization) VALUES
+    ('ES', 'EI',    'Empresario individual',                   FALSE),
+    ('ES', 'PA',    'Profesional autónomo',                    FALSE),
+    ('ES', 'ERL',   'Emprendedor de Responsabilidad Limitada', FALSE),
+    ('ES', 'SL',    'Sociedad Limitada',                       TRUE),
+    ('ES', 'SLU',   'Sociedad Limitada Unipersonal',           TRUE),
+    ('ES', 'SA',    'Sociedad Anónima',                        TRUE),
+    ('ES', 'SAU',   'Sociedad Anónima Unipersonal',            TRUE),
+    ('ES', 'SColl', 'Sociedad Colectiva',                      TRUE),
+    ('ES', 'SCom',  'Sociedad Comanditaria Simple',            TRUE),
+    ('ES', 'SComA', 'Sociedad Comanditaria por Acciones',      TRUE),
+    ('ES', 'SCoop', 'Sociedad Cooperativa',                    TRUE),
+    ('ES', 'SLL',   'Sociedad Limitada Laboral',               TRUE),
+    ('ES', 'SAL',   'Sociedad Anónima Laboral',                TRUE),
+    ('ES', 'SC',    'Sociedad Civil',                          TRUE),
+    ('ES', 'CB',    'Comunidad de Bienes',                     TRUE),
+    ('ES', 'AIE',   'Agrupación de Interés Económico',         TRUE),
+    ('ES', 'SAT',   'Sociedad Agraria de Transformación',      TRUE);
 
 INSERT INTO t4_country_currency (country_alpha2_code, currency_numeric_code) VALUES
     ('ES', 978);

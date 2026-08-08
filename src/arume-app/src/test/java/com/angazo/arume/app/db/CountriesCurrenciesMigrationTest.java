@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.List;
 
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.BeforeAll;
@@ -22,13 +23,21 @@ class CountriesCurrenciesMigrationTest {
         Flyway.configure()
             .dataSource(URL, "sa", "")
             .locations("classpath:db/migration/core")
-            .table("flyway_core_schema_history")
+            .table("_flyway_core_schema_history")
             .load()
             .migrate();
         Flyway.configure()
             .dataSource(URL, "sa", "")
             .locations("classpath:db/migration/es")
-            .table("flyway_es_schema_history")
+            .table("_flyway_es_schema_history")
+            .baselineOnMigrate(true)
+            .baselineVersion("0.0.0.0")
+            .load()
+            .migrate();
+        Flyway.configure()
+            .dataSource(URL, "sa", "")
+            .locations("classpath:db/migration/uk")
+            .table("_flyway_uk_schema_history")
             .baselineOnMigrate(true)
             .baselineVersion("0.0.0.0")
             .load()
@@ -54,7 +63,7 @@ class CountriesCurrenciesMigrationTest {
             assertEquals(7, countRows(stmt, "t1_countries"));
             assertEquals(14, countRows(stmt, "t2_country_names"));
             assertEquals(8, countRows(stmt, "t3_currencies"));
-            assertEquals(1, countRows(stmt, "t4_country_currency"));
+            assertEquals(2, countRows(stmt, "t4_country_currency"));
 
             var spain = queryCountry(stmt, "ES");
             assertEquals("ESP", spain.alpha3);
@@ -133,18 +142,35 @@ class CountriesCurrenciesMigrationTest {
     }
 
     @Test
-    void spainHasEuroCurrency() throws SQLException {
+    void eachNationalModuleSeedsItsOwnCurrencyAssociation() throws SQLException {
         try (var conn = DriverManager.getConnection(URL, "sa", "");
-             var stmt = conn.createStatement();
-             var rs = stmt.executeQuery(
-                 "SELECT currency_numeric_code FROM t4_country_currency WHERE country_alpha2_code = 'ES'")) {
+             var stmt = conn.createStatement()) {
 
+            assertEquals(List.of(978), currenciesOf(stmt, "ES"), "Spain should have EUR (978)");
+            assertEquals(List.of(826), currenciesOf(stmt, "GB"), "The United Kingdom should have GBP (826)");
+        }
+    }
+
+    @Test
+    void countriesWithoutANationalModuleHaveNoCurrencyAssociation() throws SQLException {
+        try (var conn = DriverManager.getConnection(URL, "sa", "");
+             var stmt = conn.createStatement()) {
+
+            for (var alpha2 : List.of("US", "CL", "SG", "AU", "ZA")) {
+                assertEquals(List.of(), currenciesOf(stmt, alpha2), alpha2 + " has no national module yet");
+            }
+        }
+    }
+
+    private static List<Integer> currenciesOf(java.sql.Statement stmt, String alpha2) throws SQLException {
+        try (var rs = stmt.executeQuery(
+                 "SELECT currency_numeric_code FROM t4_country_currency "
+                     + "WHERE country_alpha2_code = '" + alpha2 + "' ORDER BY currency_numeric_code")) {
             var codes = new java.util.ArrayList<Integer>();
             while (rs.next()) {
                 codes.add(rs.getInt(1));
             }
-            assertEquals(1, codes.size());
-            assertTrue(codes.contains(978), "Spain should have EUR (978)");
+            return List.copyOf(codes);
         }
     }
 

@@ -5,7 +5,9 @@ import java.util.Objects;
 import com.angazo.arume.core.port.company.CompanyFacade;
 import com.angazo.arume.core.port.fiscalyear.FiscalYearFacade;
 import com.angazo.arume.es.logic.invoice.InvoiceSeriesFacade;
+import org.springframework.stereotype.Service;
 
+@Service
 public final class InvoiceSeriesApplicationService {
 
     private final InvoiceSeriesFacade repository;

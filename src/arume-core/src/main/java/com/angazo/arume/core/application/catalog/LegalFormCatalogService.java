@@ -5,7 +5,6 @@ import java.util.Objects;
 
 import com.angazo.arume.core.domain.catalog.LegalFormItem;
 import com.angazo.arume.core.domain.common.JurisdictionCode;
-import com.angazo.arume.core.domain.company.SubjectType;
 import com.angazo.arume.core.port.catalog.LegalFormFacade;
 
 public final class LegalFormCatalogService {
@@ -16,13 +15,12 @@ public final class LegalFormCatalogService {
         this.repository = Objects.requireNonNull(repository, "repository");
     }
 
-    public List<LegalFormItem> list(JurisdictionCode jurisdiction, SubjectType subjectType) {
+    public List<LegalFormItem> list(JurisdictionCode jurisdiction) {
         Objects.requireNonNull(jurisdiction, "jurisdiction");
-        Objects.requireNonNull(subjectType, "subjectType");
-        return repository.findByJurisdictionAndSubjectType(jurisdiction, subjectType);
+        return repository.findByJurisdiction(jurisdiction);
     }
 
-    public boolean hasCatalog(JurisdictionCode jurisdiction, SubjectType subjectType) {
-        return !list(jurisdiction, subjectType).isEmpty();
+    public boolean hasCatalog(JurisdictionCode jurisdiction) {
+        return !list(jurisdiction).isEmpty();
     }
 }

@@ -23,6 +23,7 @@ dependencies {
     implementation(project(":arume-core"))
     implementation(project(":arume-db"))
     implementation(project(":arume-es"))
+    implementation(project(":arume-uk"))
     implementation(project(":arume-ui"))
     implementation(libs.mybatis.spring.boot.starter)
 

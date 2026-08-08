@@ -3,7 +3,7 @@ tasks.register('verifyCoreIsolation') {
     description = 'Verifies that the core compile classpath has no technical or country-specific modules'
 
     doLast {
-        def forbidden = ['spring', 'mybatis', 'javafx', 'arume-db', 'arume-es']
+        def forbidden = ['spring', 'mybatis', 'javafx', 'arume-db', 'arume-es', 'arume-uk']
         def violations = configurations.compileClasspath.files.findAll { file ->
             forbidden.any { token -> file.name.toLowerCase().contains(token) }
         }

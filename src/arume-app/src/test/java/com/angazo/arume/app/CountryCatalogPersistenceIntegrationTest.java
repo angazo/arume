@@ -50,6 +50,26 @@ class CountryCatalogPersistenceIntegrationTest {
     }
 
     @Test
+    void supportedJurisdictionsAreTheOnesWithANationalModule() {
+        var jurisdictions = countryCatalogService.listSupportedJurisdictions("es");
+
+        assertEquals(
+            List.of("España", "Reino Unido"),
+            jurisdictions.stream().map(CountryCatalogEntry::name).toList()
+        );
+    }
+
+    @Test
+    void supportedJurisdictionsAreLocalized() {
+        var jurisdictions = countryCatalogService.listSupportedJurisdictions("en");
+
+        assertEquals(
+            List.of("Spain", "United Kingdom"),
+            jurisdictions.stream().map(CountryCatalogEntry::name).toList()
+        );
+    }
+
+    @Test
     void countriesAreSortedByLocalizedName() {
         var countries = countryCatalogService.list("es");
 

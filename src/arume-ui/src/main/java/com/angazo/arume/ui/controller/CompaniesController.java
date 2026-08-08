@@ -25,7 +25,6 @@ import com.angazo.arume.core.domain.company.CompanyProfile;
 import com.angazo.arume.core.domain.company.CompanySummary;
 import com.angazo.arume.core.domain.company.FiscalIdentification;
 import com.angazo.arume.core.domain.company.LegalFormCode;
-import com.angazo.arume.core.domain.company.SubjectType;
 import com.angazo.arume.ui.i18n.I18nManager;
 
 @Component
@@ -35,13 +34,13 @@ public class CompaniesController {
     private static final String DEFAULT_JURISDICTION = "ES";
 
     @FXML private Label titleLabel;
-    @FXML private Label subjectTypeLabel;
     @FXML private Label jurisdictionLabel;
     @FXML private Label fiscalIdLabel;
+    @FXML private Label legalFormFamilyLabel;
     @FXML private Label legalFormLabel;
     @FXML private Label legalNameLabel;
     @FXML private Label domicileLabel;
-    @FXML private ComboBox<String> subjectTypeCombo;
+    @FXML private ComboBox<LegalFormFamily> legalFormFamilyCombo;
     @FXML private ComboBox<CountryCatalogEntry> jurisdictionCombo;
     @FXML private TextField fiscalIdField;
     @FXML private ComboBox<String> legalFormCombo;
@@ -89,14 +88,20 @@ public class CompaniesController {
             }
         });
         jurisdictionCombo.valueProperty().addListener((_, _, _) -> refreshLegalForms());
-        subjectTypeCombo.setItems(FXCollections.observableArrayList(
-            I18nManager.getString("companies.subjectType.naturalPerson"),
-            I18nManager.getString("companies.subjectType.legalPerson")
-        ));
-        subjectTypeCombo.getSelectionModel().select(
-            I18nManager.getString("companies.subjectType.legalPerson")
-        );
-        subjectTypeCombo.valueProperty().addListener((_, _, _) -> refreshLegalForms());
+        legalFormFamilyCombo.setConverter(new StringConverter<>() {
+            @Override
+            public String toString(LegalFormFamily family) {
+                return family == null ? null : family.label();
+            }
+
+            @Override
+            public LegalFormFamily fromString(String value) {
+                return null;
+            }
+        });
+        legalFormFamilyCombo.setItems(FXCollections.observableArrayList(LegalFormFamily.values()));
+        legalFormFamilyCombo.getSelectionModel().select(LegalFormFamily.ORGANIZATION);
+        legalFormFamilyCombo.valueProperty().addListener((_, _, _) -> refreshLegalForms());
         I18nManager.onLanguageChange(this::refreshTexts);
         refreshTexts();
         refreshCountries();
@@ -108,10 +113,8 @@ public class CompaniesController {
     public void onCreate() {
         try {
             var jurisdiction = selectedJurisdiction();
-            var subjectType = selectedSubjectType();
             var legalFormCode = selectedLegalFormCode();
             var company = companyService.create(new CreateCompanyCommand(
-                subjectType,
                 new FiscalIdentification(jurisdiction, fiscalIdField.getText()),
                 new LegalFormCode(jurisdiction, legalFormCode),
                 new CompanyProfile(
@@ -130,17 +133,6 @@ public class CompaniesController {
         }
     }
 
-    private SubjectType selectedSubjectType() {
-        var selected = subjectTypeCombo.getValue();
-        if (selected == null || selected.isBlank()) {
-            throw new IllegalArgumentException("No subject type selected");
-        }
-        if (selected.equals(I18nManager.getString("companies.subjectType.naturalPerson"))) {
-            return SubjectType.NATURAL_PERSON;
-        }
-        return SubjectType.LEGAL_PERSON;
-    }
-
     private JurisdictionCode selectedJurisdiction() {
         var selected = jurisdictionCombo.getValue();
         if (selected == null) {
@@ -157,9 +149,15 @@ public class CompaniesController {
         return selected.split(java.util.regex.Pattern.quote(FORMAT_SEPARATOR), 2)[0].trim();
     }
 
+    private void refreshLegalFormFamilies() {
+        var previous = legalFormFamilyCombo.getValue();
+        legalFormFamilyCombo.setItems(FXCollections.observableArrayList(LegalFormFamily.values()));
+        legalFormFamilyCombo.getSelectionModel().select(previous == null ? LegalFormFamily.ORGANIZATION : previous);
+    }
+
     private void refreshCountries() {
         var previous = jurisdictionCombo.getValue();
-        var countries = countryCatalogService.list(I18nManager.getCurrentLanguage());
+        var countries = countryCatalogService.listSupportedJurisdictions(I18nManager.getCurrentLanguage());
         jurisdictionCombo.setItems(FXCollections.observableArrayList(countries));
         selectJurisdiction(countries, previous == null ? DEFAULT_JURISDICTION : previous.code().value());
     }
@@ -181,7 +179,10 @@ public class CompaniesController {
             return;
         }
 
-        var items = legalFormCatalogService.list(jurisdiction.code(), selectedSubjectType());
+        var family = legalFormFamilyCombo.getValue();
+        var items = legalFormCatalogService.list(jurisdiction.code()).stream()
+            .filter(item -> family == null || family.matches(item))
+            .toList();
         if (items.isEmpty()) {
             disableLegalFormCombo(I18nManager.getString("companies.legalForm.noCatalog"));
             return;
@@ -214,13 +215,14 @@ public class CompaniesController {
 
     private void refreshTexts() {
         titleLabel.setText(I18nManager.getString("companies.title"));
-        subjectTypeLabel.setText(I18nManager.getString("companies.subjectType"));
         jurisdictionLabel.setText(I18nManager.getString("companies.jurisdiction"));
         fiscalIdLabel.setText(I18nManager.getString("companies.fiscalId"));
+        legalFormFamilyLabel.setText(I18nManager.getString("companies.legalFormFamily"));
         legalFormLabel.setText(I18nManager.getString("companies.legalForm"));
         legalNameLabel.setText(I18nManager.getString("companies.legalName"));
         domicileLabel.setText(I18nManager.getString("companies.domicile"));
         createButton.setText(I18nManager.getString("companies.create"));
+        refreshLegalFormFamilies();
         refreshCountries();
         refreshLegalForms();
     }

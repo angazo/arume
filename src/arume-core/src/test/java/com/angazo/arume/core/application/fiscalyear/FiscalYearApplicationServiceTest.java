@@ -16,7 +16,6 @@ import com.angazo.arume.core.domain.company.Company;
 import com.angazo.arume.core.domain.company.CompanyProfile;
 import com.angazo.arume.core.domain.company.FiscalIdentification;
 import com.angazo.arume.core.domain.company.LegalFormCode;
-import com.angazo.arume.core.domain.company.SubjectType;
 import com.angazo.arume.core.domain.common.JurisdictionCode;
 import com.angazo.arume.core.domain.fiscalyear.FiscalYear;
 import com.angazo.arume.core.domain.fiscalyear.FiscalYearId;
@@ -154,7 +153,6 @@ class FiscalYearApplicationServiceTest {
             companies = java.util.Arrays.stream(ids)
                 .map(id -> Company.create(
                     id,
-                    SubjectType.LEGAL_PERSON,
                     new FiscalIdentification(new JurisdictionCode("ES"), Long.toString(id.value())),
                     new LegalFormCode(new JurisdictionCode("ES"), "SL"),
                     new CompanyProfile("Company", new JurisdictionCode("ES"), "Address", LocalDate.of(2024, 1, 1), null)

@@ -27,14 +27,23 @@ class BusinessSchemaMigrationTest {
         coreFlyway = Flyway.configure()
             .dataSource(URL, "sa", "")
             .locations("classpath:db/migration/core")
-            .table("flyway_core_schema_history")
+            .table("_flyway_core_schema_history")
             .load();
         coreFlyway.migrate();
 
         Flyway.configure()
             .dataSource(URL, "sa", "")
             .locations("classpath:db/migration/es")
-            .table("flyway_es_schema_history")
+            .table("_flyway_es_schema_history")
+            .baselineOnMigrate(true)
+            .baselineVersion("0.0.0.0")
+            .load()
+            .migrate();
+
+        Flyway.configure()
+            .dataSource(URL, "sa", "")
+            .locations("classpath:db/migration/uk")
+            .table("_flyway_uk_schema_history")
             .baselineOnMigrate(true)
             .baselineVersion("0.0.0.0")
             .load()
@@ -42,10 +51,11 @@ class BusinessSchemaMigrationTest {
     }
 
     @Test
-    void coreAndSpainUseIndependentHistories() throws Exception {
+    void everyModuleUsesAnIndependentHistory() throws Exception {
         try (var connection = DriverManager.getConnection(URL, "sa", "")) {
-            assertTrue(tableExists(connection, "flyway_core_schema_history"));
-            assertTrue(tableExists(connection, "flyway_es_schema_history"));
+            assertTrue(tableExists(connection, "_flyway_core_schema_history"));
+            assertTrue(tableExists(connection, "_flyway_es_schema_history"));
+            assertTrue(tableExists(connection, "_flyway_uk_schema_history"));
             assertTrue(tableExists(connection, "t5_legal_forms"));
             assertTrue(tableExists(connection, "t6_companies"));
             assertTrue(tableExists(connection, "t9_fiscal_years"));
@@ -113,31 +123,91 @@ class BusinessSchemaMigrationTest {
     }
 
     @Test
-    void companyLegalFormIsConstrainedByTheLegalFormCatalog() throws Exception {
+    void legalFormCatalogIsKeyedByJurisdictionAndCode() throws Exception {
+        try (var connection = DriverManager.getConnection(URL, "sa", "");
+             var statement = connection.createStatement();
+             var result = statement.executeQuery(
+                 "SELECT COUNT(*) FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE "
+                     + "WHERE LOWER(CONSTRAINT_NAME) = 'pk_t5' "
+                     + "AND LOWER(COLUMN_NAME) IN ('country_alpha2_code', 'code')")) {
+            result.next();
+            assertEquals(2, result.getInt(1));
+        }
+    }
+
+    @Test
+    void legalFormCodeIsUniqueWithinAJurisdiction() throws Exception {
         try (var connection = DriverManager.getConnection(URL, "sa", "");
              var statement = connection.createStatement()) {
 
             assertThrows(java.sql.SQLException.class, () -> statement.executeUpdate("""
-                INSERT INTO t6_companies (is_legal_person, primary_fiscal_jurisdiction, primary_fiscal_id,
-                                          legal_form_jurisdiction, legal_form_code)
-                VALUES (TRUE, 'ES', 'B00000000', 'ES', 'UNKNOWN')
-                """));
-            assertThrows(java.sql.SQLException.class, () -> statement.executeUpdate("""
-                INSERT INTO t6_companies (is_legal_person, primary_fiscal_jurisdiction, primary_fiscal_id,
-                                          legal_form_jurisdiction, legal_form_code)
-                VALUES (FALSE, 'ES', 'B00000001', 'ES', 'SL')
+                INSERT INTO t5_legal_forms (country_alpha2_code, code, description, is_organization)
+                VALUES ('ES', 'SL', 'Duplicated code', FALSE)
                 """));
         }
     }
 
     @Test
-    void spainSeedsTheCoreLegalFormCatalog() throws Exception {
+    void companyLegalFormIsConstrainedByTheLegalFormCatalog() throws Exception {
+        try (var connection = DriverManager.getConnection(URL, "sa", "");
+             var statement = connection.createStatement()) {
+
+            assertThrows(java.sql.SQLException.class, () -> statement.executeUpdate("""
+                INSERT INTO t6_companies (primary_fiscal_jurisdiction, primary_fiscal_id,
+                                          legal_form_jurisdiction, legal_form_code)
+                VALUES ('ES', 'B00000000', 'ES', 'UNKNOWN')
+                """));
+            assertThrows(java.sql.SQLException.class, () -> statement.executeUpdate("""
+                INSERT INTO t6_companies (primary_fiscal_jurisdiction, primary_fiscal_id,
+                                          legal_form_jurisdiction, legal_form_code)
+                VALUES ('ES', 'B00000001', 'GB', 'SL')
+                """));
+        }
+    }
+
+    @Test
+    void companiesHaveNoSubjectTypeColumn() throws Exception {
         try (var connection = DriverManager.getConnection(URL, "sa", "");
              var statement = connection.createStatement();
              var result = statement.executeQuery(
-                 "SELECT COUNT(*) FROM t5_legal_forms WHERE country_alpha2_code = 'ES'")) {
+                 "SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS "
+                     + "WHERE LOWER(TABLE_NAME) = 't6_companies' AND LOWER(COLUMN_NAME) = 'is_legal_person'")) {
             result.next();
-            assertEquals(17, result.getInt(1));
+            assertEquals(0, result.getInt(1));
+        }
+    }
+
+    @Test
+    void eachNationalModuleSeedsItsOwnLegalForms() throws Exception {
+        try (var connection = DriverManager.getConnection(URL, "sa", "")) {
+            assertEquals(17, legalFormCount(connection, "ES"));
+            assertEquals(7, legalFormCount(connection, "GB"));
+            assertEquals(0, legalFormCount(connection, "US"));
+        }
+    }
+
+    @Test
+    void onlySoleTraderIsNotAnOrganizationInTheUnitedKingdom() throws Exception {
+        try (var connection = DriverManager.getConnection(URL, "sa", "");
+             var statement = connection.createStatement();
+             var result = statement.executeQuery(
+                 "SELECT code FROM t5_legal_forms "
+                     + "WHERE country_alpha2_code = 'GB' AND is_organization = FALSE")) {
+            assertTrue(result.next());
+            assertEquals("ST", result.getString(1));
+            org.junit.jupiter.api.Assertions.assertFalse(result.next());
+        }
+    }
+
+    @Test
+    void theUnitedKingdomModuleOwnsNoTable() throws Exception {
+        try (var connection = DriverManager.getConnection(URL, "sa", "");
+             var statement = connection.createStatement();
+             var result = statement.executeQuery(
+                 "SELECT COUNT(*) FROM INFORMATION_SCHEMA.TABLES "
+                     + "WHERE LOWER(TABLE_NAME) LIKE 'gb%' OR LOWER(TABLE_NAME) LIKE 'uk%'")) {
+            result.next();
+            assertEquals(0, result.getInt(1));
         }
     }
 
@@ -185,6 +255,17 @@ class BusinessSchemaMigrationTest {
         dataSource.setUser("sa");
         dataSource.setPassword("");
         return dataSource;
+    }
+
+    private static int legalFormCount(java.sql.Connection connection, String alpha2) throws Exception {
+        try (var statement = connection.prepareStatement(
+                 "SELECT COUNT(*) FROM t5_legal_forms WHERE country_alpha2_code = ?")) {
+            statement.setString(1, alpha2);
+            try (var result = statement.executeQuery()) {
+                result.next();
+                return result.getInt(1);
+            }
+        }
     }
 
     private static boolean tableExists(java.sql.Connection connection, String tableName) throws Exception {

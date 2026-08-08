@@ -25,7 +25,7 @@ public class DatabaseConfiguration {
         SchemaVersion.parse("0.1.0.0"),
         SchemaVersion.parse("0.0.0.0"),
         "classpath:db/migration/core",
-        "flyway_core_schema_history"
+        "_flyway_core_schema_history"
     );
 
     @Bean
