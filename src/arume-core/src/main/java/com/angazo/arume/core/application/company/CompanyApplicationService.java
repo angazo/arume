@@ -26,7 +26,6 @@ public final class CompanyApplicationService implements CreateCompanyUseCase, Li
         }
         var company = Company.create(
             CompanyId.unassigned(),
-            command.subjectType(),
             command.primaryFiscalIdentification(),
             command.legalForm(),
             command.initialProfile()

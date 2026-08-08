@@ -1,6 +1,7 @@
 package com.angazo.arume.ui.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
@@ -32,11 +33,11 @@ import com.angazo.arume.core.domain.company.Company;
 import com.angazo.arume.core.domain.company.CompanyId;
 import com.angazo.arume.core.domain.company.CompanySummary;
 import com.angazo.arume.core.domain.company.FiscalIdentification;
-import com.angazo.arume.core.domain.company.SubjectType;
 import com.angazo.arume.core.port.catalog.CountryFacade;
 import com.angazo.arume.core.port.catalog.LegalFormFacade;
 import com.angazo.arume.core.port.company.CompanyFacade;
 import com.angazo.arume.ui.controller.CompaniesController;
+import com.angazo.arume.ui.controller.LegalFormFamily;
 import com.angazo.arume.ui.i18n.I18nManager;
 
 @ExtendWith(ApplicationExtension.class)
@@ -81,14 +82,18 @@ class CompaniesUiTest {
     }
 
     @Test
-    void jurisdictionComboListsCountriesWithLocalizedNames(FxRobot robot) {
+    void jurisdictionComboOffersOnlySupportedJurisdictions(FxRobot robot) {
         var combo = robot.lookup("#companies-jurisdiction-combo").queryComboBox();
 
         assertEquals(
-            List.of("Spain", "United Kingdom"),
+            List.of("Spain", "United Kingdom", "United States"),
             combo.getItems().stream().map(item -> ((CountryCatalogEntry) item).name()).toList()
         );
         assertEquals("Spain", ((CountryCatalogEntry) combo.getValue()).name());
+        assertFalse(
+            combo.getItems().stream().anyMatch(item -> ((CountryCatalogEntry) item).code().value().equals("CL")),
+            "Chile has no national module and must not be offered as a jurisdiction"
+        );
     }
 
     @Test
@@ -97,14 +102,14 @@ class CompaniesUiTest {
 
         var combo = robot.lookup("#companies-jurisdiction-combo").queryComboBox();
         assertEquals(
-            List.of("España", "Reino Unido"),
+            List.of("España", "Estados Unidos", "Reino Unido"),
             combo.getItems().stream().map(item -> ((CountryCatalogEntry) item).name()).toList()
         );
         assertEquals("ES", ((CountryCatalogEntry) combo.getValue()).code().value());
     }
 
     @Test
-    void legalFormComboListsSpanishLegalPersonFormsByDefault(FxRobot robot) {
+    void legalFormComboListsSpanishOrganizationFormsByDefault(FxRobot robot) {
         var combo = robot.lookup("#companies-legal-form-combo").queryComboBox();
 
         assertEquals(14, combo.getItems().size());
@@ -114,9 +119,9 @@ class CompaniesUiTest {
     }
 
     @Test
-    void legalFormComboFiltersBySubjectType(FxRobot robot) {
-        robot.clickOn("#companies-subject-type-combo");
-        robot.clickOn("Natural person");
+    void legalFormComboFiltersByFamily(FxRobot robot) {
+        robot.clickOn("#companies-legal-form-family-combo");
+        robot.clickOn("Individual");
 
         var combo = robot.lookup("#companies-legal-form-combo").queryComboBox();
         assertEquals(3, combo.getItems().size());
@@ -125,65 +130,142 @@ class CompaniesUiTest {
     }
 
     @Test
-    void legalFormComboDisablesForJurisdictionWithoutCatalog(FxRobot robot) {
+    void familyFilterKeepsItsSelectionAcrossALanguageChange(FxRobot robot) {
+        robot.clickOn("#companies-legal-form-family-combo");
+        robot.clickOn("Individual");
+
+        robot.interact(() -> I18nManager.setLanguage("es"));
+
+        var familyCombo = robot.lookup("#companies-legal-form-family-combo").queryComboBox();
+        assertEquals(LegalFormFamily.INDIVIDUAL, familyCombo.getValue());
+        assertEquals("Persona a título individual", familyCombo.getConverter().toString(familyCombo.getValue()));
+
+        var legalFormCombo = robot.lookup("#companies-legal-form-combo").queryComboBox();
+        assertEquals(3, legalFormCombo.getItems().size());
+    }
+
+    @Test
+    void legalFormComboListsTheUnitedKingdomCatalog(FxRobot robot) {
         robot.clickOn("#companies-jurisdiction-combo");
         robot.clickOn("United Kingdom");
+
+        var combo = robot.lookup("#companies-legal-form-combo").queryComboBox();
+        assertEquals(6, combo.getItems().size());
+        assertTrue(combo.getItems().contains("PS — Partnership"));
+        assertTrue(combo.getItems().contains("Ltd — Private Limited Company"));
+        assertEquals("CIC — Community Interest Company", combo.getValue());
+    }
+
+    @Test
+    void unitedKingdomSoleTraderIsTheOnlyIndividualForm(FxRobot robot) {
+        robot.clickOn("#companies-jurisdiction-combo");
+        robot.clickOn("United Kingdom");
+        robot.clickOn("#companies-legal-form-family-combo");
+        robot.clickOn("Individual");
+
+        var combo = robot.lookup("#companies-legal-form-combo").queryComboBox();
+        assertEquals(List.of("ST — Sole Trader"), List.copyOf(combo.getItems()));
+    }
+
+    @Test
+    void createsACompanyInASecondJurisdiction(FxRobot robot) {
+        robot.clickOn("#companies-jurisdiction-combo");
+        robot.clickOn("United Kingdom");
+        robot.clickOn("#companies-fiscal-id-field").write("UTR-1");
+        robot.clickOn("#companies-legal-name-field").write("Smith & Jones");
+        robot.clickOn("#companies-domicile-field").write("London");
+        robot.clickOn("#companies-create-button");
+
+        assertEquals(1, repository.findAll().size());
+        var company = repository.findAll().getFirst();
+        assertEquals("GB", company.primaryFiscalIdentification().jurisdiction().value());
+        assertEquals("CIC", company.legalForm().value());
+    }
+
+    @Test
+    void legalFormComboDisablesForJurisdictionWithoutCatalog(FxRobot robot) {
+        robot.clickOn("#companies-jurisdiction-combo");
+        robot.clickOn("United States");
 
         var combo = robot.lookup("#companies-legal-form-combo").queryComboBox();
         assertEquals(true, combo.isDisable());
         assertEquals(0, combo.getItems().size());
     }
 
+    /**
+     * `US` is listed as a supported jurisdiction but has no legal forms, so that the safeguard of the
+     * disabled legal form combo stays covered even though a well-seeded module always provides both.
+     */
     private static final class InMemoryCountry implements CountryFacade {
 
         private static final Map<String, Map<String, String>> NAMES = Map.of(
-            "en", Map.of("ES", "Spain", "GB", "United Kingdom"),
-            "es", Map.of("ES", "España", "GB", "Reino Unido")
+            "en", Map.of("ES", "Spain", "GB", "United Kingdom", "US", "United States", "CL", "Chile"),
+            "es", Map.of("ES", "España", "GB", "Reino Unido", "US", "Estados Unidos", "CL", "Chile")
         );
+
+        private static final List<String> SUPPORTED = List.of("ES", "GB", "US");
 
         @Override
         public List<CountryCatalogEntry> findAll(String languageCode) {
-            var names = NAMES.getOrDefault(languageCode, NAMES.get(CountryCatalogService.FALLBACK_LANGUAGE));
-            return names.entrySet().stream()
-                .map(entry -> new CountryCatalogEntry(new JurisdictionCode(entry.getKey()), entry.getValue()))
+            return entries(languageCode, NAMES.get(languageCodeOrFallback(languageCode)).keySet());
+        }
+
+        @Override
+        public List<CountryCatalogEntry> findSupportedJurisdictions(String languageCode) {
+            return entries(languageCode, SUPPORTED);
+        }
+
+        private static List<CountryCatalogEntry> entries(String languageCode, java.util.Collection<String> codes) {
+            var names = NAMES.get(languageCodeOrFallback(languageCode));
+            return codes.stream()
+                .map(code -> new CountryCatalogEntry(new JurisdictionCode(code), names.get(code)))
                 .sorted(Comparator.comparing(CountryCatalogEntry::name))
                 .toList();
+        }
+
+        private static String languageCodeOrFallback(String languageCode) {
+            return NAMES.containsKey(languageCode) ? languageCode : CountryCatalogService.FALLBACK_LANGUAGE;
         }
     }
 
     private static final class InMemoryLegalFormCatalog implements LegalFormFacade {
 
+        private static final Map<String, List<LegalFormItem>> CATALOG = Map.of(
+            "ES", List.of(
+                new LegalFormItem("EI", "Empresario individual", false),
+                new LegalFormItem("PA", "Profesional autónomo", false),
+                new LegalFormItem("ERL", "Emprendedor de Responsabilidad Limitada", false),
+                new LegalFormItem("SA", "Sociedad Anónima", true),
+                new LegalFormItem("SL", "Sociedad Limitada", true),
+                new LegalFormItem("SLU", "Sociedad Limitada Unipersonal", true),
+                new LegalFormItem("SAU", "Sociedad Anónima Unipersonal", true),
+                new LegalFormItem("SColl", "Sociedad Colectiva", true),
+                new LegalFormItem("SCom", "Sociedad Comanditaria Simple", true),
+                new LegalFormItem("SComA", "Sociedad Comanditaria por Acciones", true),
+                new LegalFormItem("SCoop", "Sociedad Cooperativa", true),
+                new LegalFormItem("SLL", "Sociedad Limitada Laboral", true),
+                new LegalFormItem("SAL", "Sociedad Anónima Laboral", true),
+                new LegalFormItem("SC", "Sociedad Civil", true),
+                new LegalFormItem("CB", "Comunidad de Bienes", true),
+                new LegalFormItem("AIE", "Agrupación de Interés Económico", true),
+                new LegalFormItem("SAT", "Sociedad Agraria de Transformación", true)
+            ),
+            "GB", List.of(
+                new LegalFormItem("ST", "Sole Trader", false),
+                new LegalFormItem("PS", "Partnership", true),
+                new LegalFormItem("LLP", "Limited Liability Partnership", true),
+                new LegalFormItem("Ltd", "Private Limited Company", true),
+                new LegalFormItem("PLC", "Public Limited Company", true),
+                new LegalFormItem("CLG", "Company Limited by Guarantee", true),
+                new LegalFormItem("CIC", "Community Interest Company", true)
+            )
+        );
+
         @Override
-        public List<LegalFormItem> findByJurisdictionAndSubjectType(
-            JurisdictionCode jurisdiction,
-            SubjectType subjectType
-        ) {
-            if (!jurisdiction.value().equals("ES")) {
-                return List.of();
-            }
-            var items = subjectType == SubjectType.NATURAL_PERSON
-                ? List.of(
-                    new LegalFormItem("EI", "Empresario individual"),
-                    new LegalFormItem("PA", "Profesional autónomo"),
-                    new LegalFormItem("ERL", "Emprendedor de Responsabilidad Limitada")
-                )
-                : List.of(
-                    new LegalFormItem("SA", "Sociedad Anónima"),
-                    new LegalFormItem("SL", "Sociedad Limitada"),
-                    new LegalFormItem("SLU", "Sociedad Limitada Unipersonal"),
-                    new LegalFormItem("SAU", "Sociedad Anónima Unipersonal"),
-                    new LegalFormItem("SColl", "Sociedad Colectiva"),
-                    new LegalFormItem("SCom", "Sociedad Comanditaria Simple"),
-                    new LegalFormItem("SComA", "Sociedad Comanditaria por Acciones"),
-                    new LegalFormItem("SCoop", "Sociedad Cooperativa"),
-                    new LegalFormItem("SLL", "Sociedad Limitada Laboral"),
-                    new LegalFormItem("SAL", "Sociedad Anónima Laboral"),
-                    new LegalFormItem("SC", "Sociedad Civil"),
-                    new LegalFormItem("CB", "Comunidad de Bienes"),
-                    new LegalFormItem("AIE", "Agrupación de Interés Económico"),
-                    new LegalFormItem("SAT", "Sociedad Agraria de Transformación")
-                );
-            return items.stream().sorted(Comparator.comparing(LegalFormItem::description)).toList();
+        public List<LegalFormItem> findByJurisdiction(JurisdictionCode jurisdiction) {
+            return CATALOG.getOrDefault(jurisdiction.value(), List.of()).stream()
+                .sorted(Comparator.comparing(LegalFormItem::description))
+                .toList();
         }
     }
 

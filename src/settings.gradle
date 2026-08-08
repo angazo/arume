@@ -4,4 +4,5 @@ include "arume-app"
 include "arume-core"
 include "arume-db"
 include "arume-es"
+include "arume-uk"
 include 'arume-ui'

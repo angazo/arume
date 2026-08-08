@@ -24,7 +24,7 @@ public final class SpainModuleDescriptor {
             SchemaVersion.parse("0.1.0.0"),
             SchemaVersion.parse("0.1.0.0"),
             "classpath:db/migration/es",
-            "flyway_es_schema_history"
+            "_flyway_es_schema_history"
         );
     }
 }

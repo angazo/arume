@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.angazo.arume.core.application.catalog.CountryCatalogService;
 import com.angazo.arume.core.domain.catalog.CountryCatalogEntry;
 import com.angazo.arume.core.domain.common.JurisdictionCode;
+import com.angazo.arume.db.persistence.model.T2CountryNames;
 
 @Repository
 public class CountryAdapter implements CountryFacade {
@@ -22,7 +23,19 @@ public class CountryAdapter implements CountryFacade {
     @Override
     @Transactional(readOnly = true)
     public List<CountryCatalogEntry> findAll(String languageCode) {
-        return repository.selectCountriesByLanguage(languageCode, CountryCatalogService.FALLBACK_LANGUAGE).stream()
+        return toEntries(repository.selectCountriesByLanguage(languageCode, CountryCatalogService.FALLBACK_LANGUAGE));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<CountryCatalogEntry> findSupportedJurisdictions(String languageCode) {
+        return toEntries(
+            repository.selectSupportedJurisdictionsByLanguage(languageCode, CountryCatalogService.FALLBACK_LANGUAGE)
+        );
+    }
+
+    private static List<CountryCatalogEntry> toEntries(List<T2CountryNames> rows) {
+        return rows.stream()
             .map(row -> new CountryCatalogEntry(
                 new JurisdictionCode(row.getCountryAlpha2Code()),
                 row.getName()

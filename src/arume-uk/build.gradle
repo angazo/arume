@@ -1,0 +1,10 @@
+dependencies {
+    implementation(project(":arume-core"))
+    implementation(project(":arume-db"))
+    implementation(libs.spring.boot)
+    implementation(libs.flyway.core)
+    runtimeOnly(libs.h2)
+
+    testImplementation(libs.junit.jupiter)
+    testRuntimeOnly(libs.junit.platform.launcher)
+}

@@ -21,6 +21,10 @@ public final class CountryCatalogService {
         return repository.findAll(normalize(languageCode));
     }
 
+    public List<CountryCatalogEntry> listSupportedJurisdictions(String languageCode) {
+        return repository.findSupportedJurisdictions(normalize(languageCode));
+    }
+
     private static String normalize(String languageCode) {
         if (languageCode == null || languageCode.isBlank()) {
             return FALLBACK_LANGUAGE;

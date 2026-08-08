@@ -7,7 +7,9 @@ import com.angazo.arume.core.module.FiscalCapability;
 import com.angazo.arume.core.module.FiscalModule;
 import com.angazo.arume.core.module.FiscalModuleDescriptor;
 import com.angazo.arume.es.logic.invoice.series.InvoiceSeriesApplicationService;
+import org.springframework.stereotype.Component;
 
+@Component
 public final class SpainFiscalModule implements FiscalModule {
 
     private final FiscalModuleDescriptor descriptor = SpainModuleDescriptor.descriptor();

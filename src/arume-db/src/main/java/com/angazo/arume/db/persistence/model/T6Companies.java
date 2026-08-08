@@ -12,9 +12,6 @@ public class T6Companies implements Serializable {
     @Generated(value="org.mybatis.generator.api.MyBatisGenerator", comments="Source field: public.t6_companies.id")
     private Long id;
 
-    @Generated(value="org.mybatis.generator.api.MyBatisGenerator", comments="Source field: public.t6_companies.is_legal_person")
-    private Boolean isLegalPerson;
-
     @Generated(value="org.mybatis.generator.api.MyBatisGenerator", comments="Source field: public.t6_companies.primary_fiscal_jurisdiction")
     private String primaryFiscalJurisdiction;
 

@@ -8,7 +8,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.angazo.arume.core.domain.catalog.LegalFormItem;
 import com.angazo.arume.core.domain.common.JurisdictionCode;
-import com.angazo.arume.core.domain.company.SubjectType;
 
 @Repository
 public class LegalFormCatalogAdapter implements LegalFormFacade {
@@ -21,12 +20,13 @@ public class LegalFormCatalogAdapter implements LegalFormFacade {
 
     @Override
     @Transactional(readOnly = true)
-    public List<LegalFormItem> findByJurisdictionAndSubjectType(
-        JurisdictionCode jurisdiction,
-        SubjectType subjectType
-    ) {
-        return repository.selectByCountryAndSubjectType(jurisdiction.value(), subjectType.isLegalPerson()).stream()
-            .map(row -> new LegalFormItem(row.getCode(), row.getDescription()))
+    public List<LegalFormItem> findByJurisdiction(JurisdictionCode jurisdiction) {
+        return repository.selectByCountry(jurisdiction.value()).stream()
+            .map(row -> new LegalFormItem(
+                row.getCode(),
+                row.getDescription(),
+                Boolean.TRUE.equals(row.getIsOrganization())
+            ))
             .toList();
     }
 }

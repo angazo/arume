@@ -50,14 +50,14 @@ public final class EsMbGeneratorMain {
         Flyway.configure()
             .dataSource(url, user, password)
             .locations("classpath:db/migration/core")
-            .table("flyway_core_schema_history")
+            .table("_flyway_core_schema_history")
             .load()
             .migrate();
 
         Flyway.configure()
             .dataSource(url, user, password)
             .locations("classpath:db/migration/es")
-            .table("flyway_es_schema_history")
+            .table("_flyway_es_schema_history")
             .baselineOnMigrate(true)
             .baselineVersion("0.0.0.0")
             .load()
