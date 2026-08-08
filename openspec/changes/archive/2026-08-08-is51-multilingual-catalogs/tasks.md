@@ -58,4 +58,4 @@
 - [x] 8.1 Actualizar `AGENTS.md`: nueva numeración de tablas core, alpha-2 como código de jurisdicción canónico, patrón de contenido multiidioma, catálogo de formas jurídicas en core y nombrado de las banderas por alpha-2 (incluido el comando de regeneración `rsvg-convert -w 96 -h 72 -o es.png es.svg`).
 - [x] 8.2 Registrar el change en `docs/Product-Spec.md` y documentar el patrón de tablas de textos por idioma.
 - [x] 8.3 Ejecutar `./gradlew build` (bajo Xvfb si no hay entorno gráfico) y comprobar el arranque de la aplicación con la base de datos borrada.
-- [ ] 8.4 Al cerrar el change: cerrar el issue #50 como absorbido, actualizar el issue #48 con el nuevo patrón de seed y abrir un issue de backlog para los nombres de divisa traducidos.
+- [x] 8.4 Al cerrar el change: cerrar el issue #50 como absorbido, actualizar el issue #48 con el nuevo patrón de seed y abrir un issue de backlog para los nombres de divisa traducidos.

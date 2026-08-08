@@ -7,6 +7,7 @@ Provide multi-language support for the application UI, allowing users to choose 
 ## Requirements
 
 ### Requirement: I18n Manager singleton
+I18n Manager singleton
 The system SHALL provide an `I18nManager` class that manages the current language and provides translated strings from resource bundles.
 
 #### Scenario: Manager initializes with a language
@@ -26,6 +27,7 @@ The system SHALL provide an `I18nManager` class that manages the current languag
 - **THEN** the method SHALL return "!nonexistent.key!" as a visible indicator of the missing key
 
 ### Requirement: Language change with listener notification
+Language change with listener notification
 The system SHALL allow changing the active language at runtime and SHALL notify registered listeners.
 
 #### Scenario: Language changes and listeners are notified
@@ -41,6 +43,7 @@ The system SHALL allow changing the active language at runtime and SHALL notify 
 - **THEN** the callback SHALL be invoked on every subsequent language change
 
 ### Requirement: OS language detection
+OS language detection
 The system SHALL detect the operating system locale and SHALL derive the default UI language from its language tag: Spanish (`es`) for Spanish
 locales (including co-official languages such as `ca`, `gl` or `eu` when the country is `ES`), English (`en`) otherwise.
 
@@ -57,6 +60,7 @@ locales (including co-official languages such as `ca`, `gl` or `eu` when the cou
 - **THEN** `I18nManager.detectDefaultLanguage()` SHALL return `"en"`
 
 ### Requirement: Resource bundle files
+Resource bundle files
 The system SHALL provide resource bundle files for each supported language.
 
 #### Scenario: English bundle exists
@@ -72,6 +76,7 @@ The system SHALL provide resource bundle files for each supported language.
 - **THEN** every key present in the English bundle SHALL also exist in the Spanish bundle
 
 ### Requirement: Language persistence in arume.yml
+Language persistence in arume.yml
 The system SHALL persist the user's language choice in the `arume.yml` configuration file under the key `arume.language`, and updates to other
 keys (theme) SHALL NOT alter the persisted language value.
 
@@ -88,6 +93,7 @@ keys (theme) SHALL NOT alter the persisted language value.
 - **THEN** `arume.yml` SHALL be updated with the new `arume.language` value and other persisted keys (theme) SHALL remain unchanged
 
 ### Requirement: Language change from main application window
+Language change from main application window
 The system SHALL provide a language selector button in the custom title bar allowing the user to toggle between English and Spanish, displaying the
 name of the currently active language as its label.
 
@@ -110,3 +116,28 @@ name of the currently active language as its label.
 #### Scenario: Language button label refreshes on language change
 - **WHEN** the language is changed from any source (e.g., wizard, code)
 - **THEN** the language button text SHALL be re-set to the name of the now-active language
+
+### Requirement: Interface languages match the database language catalog
+Interface languages match the database language catalog
+
+Every language selectable in the user interface SHALL exist in the database language catalog, and every language in that catalog SHALL have its resource bundle available in the application.
+
+#### Scenario: Selectable languages exist in the catalog
+
+- **WHEN** the language catalog is read after the core migrations have been applied
+- **THEN** it SHALL contain exactly the languages the title bar language selector can activate (`en` and `es`)
+
+#### Scenario: Every catalog language has a resource bundle
+
+- **WHEN** the application is built
+- **THEN** a resource bundle SHALL exist for each language code present in the language catalog
+
+### Requirement: Active language applies to database catalog content
+Active language applies to database catalog content
+
+The active interface language SHALL determine not only the resource bundle texts but also the language used to read translatable catalog content from the database.
+
+#### Scenario: Catalog content follows the active language
+
+- **WHEN** the user changes the interface language while a view displaying database catalog content is open
+- **THEN** that content SHALL be reloaded in the newly active language together with the resource bundle texts
